@@ -1,73 +1,42 @@
-# React + TypeScript + Vite
+# Tilted Director
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Table de bord ludique pour diriger un tournoi de poker : suivi des niveaux de blindes, gestion des joueurs et statistiques clés dans une interface cartoon déjantée.
 
-Currently, two official plugins are available:
+## Aperçu rapide
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Dashboard** : résumé du tournoi (joueurs actifs/éliminés, niveau en cours, temps restant) via [`DashboardView`](src/views/Dashboard.tsx).
+- **Timer** : minuteur de blindes interactif (play/pause, précédent/suivant, reset) avec structure affichée dans [`TimerView`](src/views/Timer.tsx).
+- **Players** : ajout, élimination/réintégration, suppression et affichage par sièges dans [`PlayersView`](src/views/Players.tsx).
+- **Director** : réglages (nom, tapis de départ), annonces et stats moyennes dans [`DirectorView`](src/views/Director.tsx).
+- **Navigation** : barre inférieure pilotant les vues dans [`BottomNav`](src/common/layout/BottomNav.tsx).
+- **Logique centrale** : état du tournoi (joueurs, blindes, minuteur) géré par [`useTournament`](src/hooks/useTournament.tsx) et orchestré dans [`Index`](src/modules/Index.tsx).
 
-## React Compiler
+## Pile technique
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- [React 19](package.json) + [Vite 7](vite.config.ts)
+- TypeScript strict ([tsconfig.app.json](tsconfig.app.json))
+- Tailwind CSS v4 + utilitaires d’animation (voir [src/index.css](src/index.css))
+- Icônes : lucide-react
 
-## Expanding the ESLint configuration
+## Scripts PNPM
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+pnpm install  # installer les dépendences du projet
+pnpm dev      # démarre Vite en mode dev
+pnpm build    # tsc -b puis vite build
+pnpm preview  # prévisualisation de la build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Structure
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- `src/components/` : UI réutilisable (ex. `CartoonCard`, `CartoonButton`).
+- `src/views/` : vues métier.
+- `src/hooks/` : logique état/données.
+- `src/common/layout/` : navigation.
+- `src/assets/` : visuels.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Démarrage
+
+1. `pnpm install`
+2. `pnpm dev`
+3. Ouvrir http://localhost:5173
