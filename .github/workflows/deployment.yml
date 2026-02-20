@@ -16,13 +16,14 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 24.x
+      - name: 🔐 Enable Corepack
+        run: corepack enable
+        shell: bash
       - name: 📥 Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: 📑 Generate JSDoc documentation
-        run: pnpm jsdoc
       - name: 🧰 Build
         id: build
-        run: pnpm run build --if-present
+        run: pnpm build
       - name: 🗒️ Build report
         if: always()
         run: |
@@ -38,7 +39,7 @@ jobs:
       - name: 📤 Upload artifact for deployment
         uses: actions/upload-pages-artifact@v3
         with:
-          path: build
+          path: dist
 
   deploy:
     name: 🚀 Deploy to GitHub Pages
