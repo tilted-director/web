@@ -1,18 +1,7 @@
+import { useTournamentStore } from "@/stores/tournament.store";
 import { CartoonCard } from "@/components/CartoonCard";
-import type { BlindLevel, Player } from "@/hooks/useTournament";
 import { Crown, Users, Layers, Coins, X } from "lucide-react";
 import pokerScene from "@/assets/tilted-director.png";
-
-interface DashboardViewProps {
-  tournamentName: string;
-  players: Player[];
-  currentLevel: number;
-  blindLevels: BlindLevel[];
-  timeRemaining: number;
-  isRunning: boolean;
-  announcement: string;
-  setAnnouncement: (msg: string) => void;
-}
 
 const formatTime = (s: number) => {
   const m = Math.floor(s / 60);
@@ -20,16 +9,18 @@ const formatTime = (s: number) => {
   return `${m.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
 };
 
-export const DashboardView = ({
-  tournamentName,
-  players,
-  currentLevel,
-  blindLevels,
-  timeRemaining,
-  isRunning,
-  announcement,
-  setAnnouncement,
-}: DashboardViewProps) => {
+export const DashboardView = () => {
+  const {
+    tournamentName,
+    players,
+    currentLevel,
+    blindLevels,
+    timeRemaining,
+    isRunning,
+    announcement,
+    setAnnouncement,
+  } = useTournamentStore();
+
   const activePlayers = players.filter((p) => p.status === "active").length;
   const eliminatedPlayers = players.filter(
     (p) => p.status === "eliminated",

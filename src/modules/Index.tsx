@@ -4,61 +4,21 @@ import { DashboardView } from "@/views/Dashboard";
 import { TimerView } from "@/views/Timer";
 import { PlayersView } from "@/views/Players";
 import { DirectorView } from "@/views/Director";
-import { useTournament } from "@/hooks/useTournament";
+
+const VIEWS = {
+  dashboard: DashboardView,
+  timer: TimerView,
+  players: PlayersView,
+  director: DirectorView,
+};
 
 const Index = () => {
   const [activeView, setActiveView] = useState<ViewType>("dashboard");
-  const tournament = useTournament();
+  const ActiveViewComponent = VIEWS[activeView];
 
   return (
     <div className="min-h-screen gradient-felt max-w-2xl mx-auto px-4 pt-4 pb-24">
-      {activeView === "dashboard" && (
-        <DashboardView
-          tournamentName={tournament.tournamentName}
-          players={tournament.players}
-          currentLevel={tournament.currentLevel}
-          blindLevels={tournament.blindLevels}
-          timeRemaining={tournament.timeRemaining}
-          isRunning={tournament.isRunning}
-          announcement={tournament.announcement}
-          setAnnouncement={tournament.setAnnouncement}
-        />
-      )}
-      {activeView === "timer" && (
-        <TimerView
-          currentLevel={tournament.currentLevel}
-          blindLevels={tournament.blindLevels}
-          timeRemaining={tournament.timeRemaining}
-          isRunning={tournament.isRunning}
-          toggleTimer={tournament.toggleTimer}
-          resetTimer={tournament.resetTimer}
-          nextLevel={tournament.nextLevel}
-          prevLevel={tournament.prevLevel}
-        />
-      )}
-      {activeView === "players" && (
-        <PlayersView
-          players={tournament.players}
-          addPlayer={tournament.addPlayer}
-          eliminatePlayer={tournament.eliminatePlayer}
-          reinstatePlayer={tournament.reinstatePlayer}
-          removePlayer={tournament.removePlayer}
-          restoreSavedPlayers={tournament.restoreSavedPlayers}
-        />
-      )}
-      {activeView === "director" && (
-        <DirectorView
-          tournamentName={tournament.tournamentName}
-          setTournamentName={tournament.setTournamentName}
-          startingChips={tournament.startingChips}
-          setStartingChips={tournament.setStartingChips}
-          players={tournament.players}
-          currentLevel={tournament.currentLevel}
-          blindLevels={tournament.blindLevels}
-          announcement={tournament.announcement}
-          setAnnouncement={tournament.setAnnouncement}
-        />
-      )}
+      <ActiveViewComponent />
       <BottomNav activeView={activeView} onNavigate={setActiveView} />
     </div>
   );

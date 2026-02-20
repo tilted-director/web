@@ -1,32 +1,22 @@
 import { useState } from "react";
+import { useTournamentStore } from "@/stores/tournament.store";
 import { CartoonCard } from "@/components/CartoonCard";
 import { CartoonButton } from "@/components/CartoonButton";
-import type { Player, BlindLevel } from "@/hooks/useTournament";
 import { Shuffle, Award, AlertTriangle } from "lucide-react";
 
-interface DirectorViewProps {
-  tournamentName: string;
-  setTournamentName: (name: string) => void;
-  startingChips: number;
-  setStartingChips: (chips: number) => void;
-  players: Player[];
-  currentLevel: number;
-  blindLevels: BlindLevel[];
-  announcement: string;
-  setAnnouncement: (msg: string) => void;
-}
+export const DirectorView = () => {
+  const {
+    tournamentName,
+    setTournamentName,
+    startingChips,
+    setStartingChips,
+    players,
+    currentLevel,
+    blindLevels,
+    announcement,
+    setAnnouncement,
+  } = useTournamentStore();
 
-export const DirectorView = ({
-  tournamentName,
-  setTournamentName,
-  startingChips,
-  setStartingChips,
-  players,
-  currentLevel,
-  blindLevels,
-  announcement,
-  setAnnouncement,
-}: DirectorViewProps) => {
   const [showPreview, setShowPreview] = useState(false);
 
   const activePlayers = players.filter((p) => p.status === "active");

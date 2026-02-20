@@ -1,7 +1,8 @@
 import { useState, useMemo } from "react";
+import { useTournamentStore } from "@/stores/tournament.store";
 import { CartoonCard } from "@/components/CartoonCard";
 import { CartoonButton } from "@/components/CartoonButton";
-import { getSavedPlayerNames, useTournament } from "@/hooks/useTournament";
+import { getSavedPlayerNames } from "@/hooks/useTournament";
 import {
   UserPlus,
   Skull,
@@ -13,21 +14,16 @@ import {
 } from "lucide-react";
 import dealerAvatar from "@/assets/dealer.svg";
 
-interface PlayersViewProps {
-  players: Player[];
-  addPlayer: (name: string) => void;
-  eliminatePlayer: (id: string) => void;
-  reinstatePlayer: (id: string) => void;
-  removePlayer: (id: string) => void;
-}
+export const PlayersView = () => {
+  const {
+    players,
+    addPlayer,
+    eliminatePlayer,
+    reinstatePlayer,
+    rebuy,
+    removePlayer,
+  } = useTournamentStore();
 
-export const PlayersView = ({
-  players,
-  addPlayer,
-  eliminatePlayer,
-  reinstatePlayer,
-  removePlayer,
-}: PlayersViewProps) => {
   const [newName, setNewName] = useState("");
   const [savedNames, setSavedNames] = useState<string[]>(getSavedPlayerNames());
 
