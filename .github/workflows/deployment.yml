@@ -1,0 +1,57 @@
+name: Deploy the app to GitHub Pages
+
+on:
+  pull_request:
+    types: [reopened, opened, synchronize, ready_for_review]
+    branches: [main]
+
+jobs:
+  build:
+    name: 🏗️ Build on Node.js 24.x
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 👯‍♂️ Clone repository
+        uses: actions/checkout@v4
+      - name: 🔧 Use Node.js 24.x
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24.x
+      - name: 📥 Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: 📑 Generate JSDoc documentation
+        run: pnpm jsdoc
+      - name: 🧰 Build
+        id: build
+        run: pnpm run build --if-present
+      - name: 🗒️ Build report
+        if: always()
+        run: |
+          echo "Node.js version: $(node -v)"
+          if [[ ${{ steps.build.outcome }} == "success" ]]; then
+            echo "✅ Build succeeded"
+          else
+            echo "❌ Build failed"
+          fi
+      - name: 🔧 Setup pages
+        id: pages
+        uses: actions/configure-pages@v3
+      - name: 📤 Upload artifact for deployment
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build
+
+  deploy:
+    name: 🚀 Deploy to GitHub Pages
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    needs: [build]
+    steps:
+      - name: 🚀 Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
