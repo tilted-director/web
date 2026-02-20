@@ -1,0 +1,26 @@
+name: Pull request CI
+
+on:
+  pull_request:
+    types: [reopened, opened, synchronize, ready_for_review]
+    branches: ["*", "**/*"]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 👯‍♂️ Clone repository
+        uses: actions/checkout@v3
+      - name: 🔧 Use Node.js 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+      - name: 🔐 Enable Corepack
+        run: corepack enable
+        shell: bash
+
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: 👮🏻‍♂️ Run lint
+        id: lint
+        run: pnpm lint:ci
