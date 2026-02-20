@@ -3,7 +3,7 @@ name: Pull request CI
 on:
   pull_request:
     types: [reopened, opened, synchronize, ready_for_review]
-    branches: ["*", "**/*"]
+    branches-ignore: [main]
 
 jobs:
   lint:
