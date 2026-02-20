@@ -21,7 +21,7 @@ const navItems: {
 
 export const BottomNav = ({ activeView, onNavigate }: BottomNavProps) => {
   return (
-    <nav className="border-t-4 border-primary bg-card">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t-4 border-primary bg-card">
       <div className="flex justify-around items-center py-2 px-2 max-w-lg mx-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
