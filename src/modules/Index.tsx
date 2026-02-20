@@ -20,6 +20,8 @@ const Index = () => {
           blindLevels={tournament.blindLevels}
           timeRemaining={tournament.timeRemaining}
           isRunning={tournament.isRunning}
+          announcement={tournament.announcement}
+          setAnnouncement={tournament.setAnnouncement}
         />
       )}
       {activeView === "timer" && (
@@ -52,6 +54,8 @@ const Index = () => {
           players={tournament.players}
           currentLevel={tournament.currentLevel}
           blindLevels={tournament.blindLevels}
+          announcement={tournament.announcement}
+          setAnnouncement={tournament.setAnnouncement}
         />
       )}
       <BottomNav activeView={activeView} onNavigate={setActiveView} />

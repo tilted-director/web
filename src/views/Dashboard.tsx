@@ -1,6 +1,6 @@
 import { CartoonCard } from "@/components/CartoonCard";
 import type { BlindLevel, Player } from "@/hooks/useTournament";
-import { Crown, Users, Layers, Coins } from "lucide-react";
+import { Crown, Users, Layers, Coins, X } from "lucide-react";
 import pokerScene from "@/assets/tilted-director.png";
 
 interface DashboardViewProps {
@@ -10,6 +10,8 @@ interface DashboardViewProps {
   blindLevels: BlindLevel[];
   timeRemaining: number;
   isRunning: boolean;
+  announcement: string;
+  setAnnouncement: (msg: string) => void;
 }
 
 const formatTime = (s: number) => {
@@ -25,6 +27,8 @@ export const DashboardView = ({
   blindLevels,
   timeRemaining,
   isRunning,
+  announcement,
+  setAnnouncement,
 }: DashboardViewProps) => {
   const activePlayers = players.filter((p) => p.status === "active").length;
   const eliminatedPlayers = players.filter(
@@ -49,6 +53,23 @@ export const DashboardView = ({
           🃏 Tournament Director 🃏
         </p>
       </div>
+
+      {/* Announcement Banner */}
+      {announcement && (
+        <CartoonCard variant="red">
+          <div className="flex items-center justify-between">
+            <span className="font-display text-foreground">
+              📣 {announcement}
+            </span>
+            <button
+              onClick={() => setAnnouncement("")}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <X size={18} />
+            </button>
+          </div>
+        </CartoonCard>
+      )}
 
       {/* Current Blinds - Hero Card */}
       <CartoonCard variant="gold" className="tilt-right text-center">

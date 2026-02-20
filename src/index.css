@@ -137,6 +137,9 @@
   .pulse-glow {
     animation: pulseGlow 2s ease-in-out infinite;
   }
+  .animate-bounce-stop {
+    animation: bounce-stop-subtle 1.2s ease-out forwards;
+  }
   .font-display {
     font-family: "Bangers", cursive;
     letter-spacing: 0.05em;
@@ -158,6 +161,40 @@
       hsl(var(--background))
     );
   }
+}
+
+@keyframes bounce-stop-subtle {
+  0% {
+    transform: translateY(-25%);
+    animation-timing-function: ease-in;
+  } /* Hauteur max (originale) */
+  20% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  } /* 1er Impact */
+  40% {
+    transform: translateY(-12%);
+    animation-timing-function: ease-in;
+  } /* Rebond à moitié */
+  55% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  } /* 2e Impact */
+  70% {
+    transform: translateY(-5%);
+    animation-timing-function: ease-in;
+  } /* Petit sursaut */
+  82% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  } /* 3e Impact */
+  92% {
+    transform: translateY(-2%);
+    animation-timing-function: ease-in;
+  } /* Micro frémissement */
+  100% {
+    transform: translateY(0);
+  } /* Arrêt total */
 }
 
 @keyframes wobble {

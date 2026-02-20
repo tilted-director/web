@@ -39,6 +39,7 @@ export const useTournament = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [tournamentName, setTournamentName] = useState("CRAZY POKER NIGHT");
   const [startingChips, setStartingChips] = useState(10000);
+  const [announcement, setAnnouncement] = useState("");
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -128,8 +129,10 @@ export const useTournament = () => {
     isRunning,
     tournamentName,
     startingChips,
+    announcement,
     setTournamentName,
     setStartingChips,
+    setAnnouncement,
     addPlayer,
     eliminatePlayer,
     reinstatePlayer,
