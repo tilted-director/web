@@ -35,7 +35,7 @@ export const DashboardView = ({
     (p) => p.status === "eliminated",
   ).length;
   const blind = blindLevels[currentLevel];
-  const totalChips = players.length * 10000;
+  const totalChips = players.reduce((sum, p) => sum + p.chips, 0);
 
   return (
     <div className="space-y-4 pb-4">

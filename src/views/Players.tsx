@@ -1,7 +1,16 @@
 import { useState, useMemo } from "react";
 import { CartoonCard } from "@/components/CartoonCard";
 import { CartoonButton } from "@/components/CartoonButton";
-import { type Player, getSavedPlayerNames } from "@/hooks/useTournament";
+import { getSavedPlayerNames, useTournament } from "@/hooks/useTournament";
+import {
+  UserPlus,
+  Skull,
+  RotateCcw,
+  Trash2,
+  Plus,
+  Heart,
+  CircleDollarSign,
+} from "lucide-react";
 import dealerAvatar from "@/assets/dealer.svg";
 
 interface PlayersViewProps {
@@ -125,14 +134,10 @@ export const PlayersView = ({
                     💰 {player.chips.toLocaleString()}
                   </p>
                 </div>
-                <div className="flex gap-1.5">
+                <div className="flex gap-2">
                   <button
                     onClick={() => toggleSavePlayer(player.name)}
-                    className={`p-2 rounded-lg transition-colors ${
-                      savedNames.includes(player.name)
-                        ? "bg-pink-500/20 text-pink-500 hover:bg-pink-500/40"
-                        : "bg-muted text-muted-foreground hover:bg-muted/80"
-                    }`}
+                    className="p-2 rounded-lg transition-colors cta-pop cta-pop-love"
                     title={savedNames.includes(player.name) ? "Unsave" : "Save"}
                   >
                     <Heart
@@ -146,14 +151,14 @@ export const PlayersView = ({
                   </button>
                   <button
                     onClick={() => eliminatePlayer(player.id)}
-                    className="p-2 rounded-lg bg-secondary/20 text-secondary hover:bg-secondary/40 transition-colors"
+                    className="p-2 rounded-lg transition-colors cta-pop cta-pop-danger"
                     title="Eliminate"
                   >
                     <Skull size={18} />
                   </button>
                   <button
                     onClick={() => removePlayer(player.id)}
-                    className="p-2 rounded-lg bg-destructive/20 text-destructive hover:bg-destructive/40 transition-colors"
+                    className="p-2 rounded-lg transition-colors cta-pop cta-pop-danger"
                     title="Remove"
                   >
                     <Trash2 size={18} />
@@ -178,20 +183,29 @@ export const PlayersView = ({
           </h3>
           <div className="space-y-2">
             {eliminatedPlayers.map((player) => (
-              <CartoonCard key={player.id} className="opacity-60">
+              <CartoonCard key={player.id} variant="ghost">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-display text-lg text-foreground line-through">
+                    <p className="font-display text-lg text-foreground line-through opacity-60">
                       {player.name}
                     </p>
                   </div>
-                  <button
-                    onClick={() => reinstatePlayer(player.id)}
-                    className="p-2 rounded-lg bg-accent/20 text-accent hover:bg-accent/40 transition-colors"
-                    title="Reinstate"
-                  >
-                    <RotateCcw size={18} />
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => rebuy(player.id)}
+                      className="p-2 rounded-lg transition-colors cta-pop cta-pop-accent"
+                      title="Rebuy"
+                    >
+                      <CircleDollarSign size={18} />
+                    </button>
+                    <button
+                      onClick={() => reinstatePlayer(player.id)}
+                      className="p-2 rounded-lg transition-colors cta-pop cta-pop-love"
+                      title="Reinstate"
+                    >
+                      <RotateCcw size={18} />
+                    </button>
+                  </div>
                 </div>
               </CartoonCard>
             ))}

@@ -6,6 +6,7 @@ export interface Player {
   chips: number;
   status: "active" | "eliminated";
   seat: number;
+  rebuyCount: number;
 }
 
 export interface BlindLevel {
@@ -87,6 +88,7 @@ export const useTournament = () => {
           chips: startingChips,
           status: "active",
           seat: prev.length + 1,
+          rebuyCount: 0,
         },
       ]);
     },
@@ -107,26 +109,27 @@ export const useTournament = () => {
     );
   }, []);
 
+  const rebuy = useCallback(
+    (id: string) => {
+      setPlayers((prev) =>
+        prev.map((p) =>
+          p.id === id
+            ? {
+                ...p,
+                status: "active",
+                chips: p.chips + startingChips,
+                rebuyCount: p.rebuyCount + 1,
+              }
+            : p,
+        ),
+      );
+    },
+    [startingChips],
+  );
+
   const removePlayer = useCallback((id: string) => {
     setPlayers((prev) => prev.filter((p) => p.id !== id));
   }, []);
-
-  const restoreSavedPlayers = useCallback(() => {
-    const savedNames = getSavedPlayerNames();
-    setPlayers((prev) => {
-      const existingNames = new Set(prev.map((p) => p.name));
-      const newPlayers = savedNames
-        .filter((name) => !existingNames.has(name))
-        .map((name, i) => ({
-          id: crypto.randomUUID(),
-          name,
-          chips: startingChips,
-          status: "active" as const,
-          seat: prev.length + i + 1,
-        }));
-      return [...prev, ...newPlayers];
-    });
-  }, [startingChips]);
 
   const toggleTimer = useCallback(() => setIsRunning((prev) => !prev), []);
 
@@ -162,8 +165,8 @@ export const useTournament = () => {
     addPlayer,
     eliminatePlayer,
     reinstatePlayer,
+    rebuy,
     removePlayer,
-    restoreSavedPlayers,
     toggleTimer,
     resetTimer,
     nextLevel,
