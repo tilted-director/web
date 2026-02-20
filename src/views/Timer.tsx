@@ -48,7 +48,7 @@ export const TimerView = ({
       >
         {/* Progress bar background */}
         <div
-          className="absolute bottom-0 left-0 h-2 bg-secondary transition-all duration-1000"
+          className="absolute px-0.5 bottom-0 left-0 h-2 bg-secondary transition-all duration-1000"
           style={{ width: `${progress * 100}%` }}
         />
         <p className="text-sm text-muted-foreground font-display tracking-widest">

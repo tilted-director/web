@@ -29,6 +29,15 @@ const DEFAULT_BLINDS: BlindLevel[] = [
   { level: 10, smallBlind: 1000, bigBlind: 2000, ante: 300, duration: 10 },
 ];
 
+export const getSavedPlayerNames = (): string[] => {
+  try {
+    const saved = localStorage.getItem("favorite_players");
+    return saved ? JSON.parse(saved) : [];
+  } catch {
+    return [];
+  }
+};
+
 export const useTournament = () => {
   const [players, setPlayers] = useState<Player[]>([]);
   const [blindLevels] = useState<BlindLevel[]>(DEFAULT_BLINDS);
@@ -102,6 +111,23 @@ export const useTournament = () => {
     setPlayers((prev) => prev.filter((p) => p.id !== id));
   }, []);
 
+  const restoreSavedPlayers = useCallback(() => {
+    const savedNames = getSavedPlayerNames();
+    setPlayers((prev) => {
+      const existingNames = new Set(prev.map((p) => p.name));
+      const newPlayers = savedNames
+        .filter((name) => !existingNames.has(name))
+        .map((name, i) => ({
+          id: crypto.randomUUID(),
+          name,
+          chips: startingChips,
+          status: "active" as const,
+          seat: prev.length + i + 1,
+        }));
+      return [...prev, ...newPlayers];
+    });
+  }, [startingChips]);
+
   const toggleTimer = useCallback(() => setIsRunning((prev) => !prev), []);
 
   const resetTimer = useCallback(() => {
@@ -137,6 +163,7 @@ export const useTournament = () => {
     eliminatePlayer,
     reinstatePlayer,
     removePlayer,
+    restoreSavedPlayers,
     toggleTimer,
     resetTimer,
     nextLevel,

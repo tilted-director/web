@@ -43,6 +43,7 @@ const Index = () => {
           eliminatePlayer={tournament.eliminatePlayer}
           reinstatePlayer={tournament.reinstatePlayer}
           removePlayer={tournament.removePlayer}
+          restoreSavedPlayers={tournament.restoreSavedPlayers}
         />
       )}
       {activeView === "director" && (
