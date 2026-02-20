@@ -16,7 +16,12 @@ Table de bord ludique pour diriger un tournoi de poker : suivi des niveaux de bl
 - [React 19](package.json) + [Vite 7](vite.config.ts)
 - TypeScript strict ([tsconfig.app.json](tsconfig.app.json))
 - Tailwind CSS v4 + utilitaires d’animation (voir [src/index.css](src/index.css))
-- Icônes : lucide-react
+- Icôn
+  es : lucide-react
+
+## 🚀 Déploiement
+
+L'application est déployée et accessible à l'adresse : **https://tilted-director.github.io/web/**
 
 ## Scripts PNPM
 
