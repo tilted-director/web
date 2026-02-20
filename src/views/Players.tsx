@@ -20,6 +20,7 @@ export const PlayersView = () => {
     addPlayer,
     eliminatePlayer,
     reinstatePlayer,
+    clearPlayers,
     rebuy,
     removePlayer,
   } = useTournamentStore();
@@ -110,7 +111,7 @@ export const PlayersView = () => {
       {/* Active Players */}
       <div>
         <h3 className="text-lg font-display text-primary mb-2">
-          🎰 ACTIVE ({activePlayers.length})
+          🎰 IN GAME ({activePlayers.length})
         </h3>
         <div className="space-y-2">
           {activePlayers.map((player, i) => (
@@ -164,7 +165,7 @@ export const PlayersView = () => {
             </CartoonCard>
           ))}
           {activePlayers.length === 0 && (
-            <p className="text-center text-muted-foreground font-body py-8">
+            <p className="text-center text-xl text-muted-foreground font-body py-8">
               No players yet. Add some above! 🃏
             </p>
           )}
@@ -175,7 +176,7 @@ export const PlayersView = () => {
       {eliminatedPlayers.length > 0 && (
         <div>
           <h3 className="text-lg font-display text-secondary mb-2">
-            💀 ELIMINATED ({eliminatedPlayers.length})
+            💀 OUT ({eliminatedPlayers.length})
           </h3>
           <div className="space-y-2">
             {eliminatedPlayers.map((player) => (
@@ -207,6 +208,15 @@ export const PlayersView = () => {
             ))}
           </div>
         </div>
+      )}
+      {players.length > 1 && (
+        <CartoonButton
+          variant="danger-light"
+          onClick={() => clearPlayers()}
+          className="w-full mt-4"
+        >
+          Clear All Players
+        </CartoonButton>
       )}
     </div>
   );

@@ -24,6 +24,7 @@ type TournamentStore = {
   addPlayer: (name: string) => void;
   eliminatePlayer: (id: string) => void;
   reinstatePlayer: (id: string) => void;
+  clearPlayers: () => void;
   rebuy: (id: string) => void;
   buyAddon: (id: string) => void;
   removePlayer: (id: string) => void;
@@ -88,6 +89,8 @@ export const useTournamentStore = create<
             p.id === id ? { ...p, status: "active" } : p,
           ),
         })),
+
+      clearPlayers: () => set({ players: [] }),
 
       rebuy: (id) =>
         set((s) => ({
