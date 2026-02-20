@@ -1,30 +1,23 @@
 import { useState } from "react";
+import { useTournamentStore } from "@/stores/tournament.store";
 import { CartoonCard } from "@/components/CartoonCard";
 import { CartoonButton } from "@/components/CartoonButton";
-import type { Player, BlindLevel } from "@/hooks/useTournament";
 import { Shuffle, Award, AlertTriangle } from "lucide-react";
 
-interface DirectorViewProps {
-  tournamentName: string;
-  setTournamentName: (name: string) => void;
-  startingChips: number;
-  setStartingChips: (chips: number) => void;
-  players: Player[];
-  currentLevel: number;
-  blindLevels: BlindLevel[];
-}
+export const DirectorView = () => {
+  const {
+    tournamentName,
+    setTournamentName,
+    startingChips,
+    setStartingChips,
+    players,
+    currentLevel,
+    blindLevels,
+    announcement,
+    setAnnouncement,
+  } = useTournamentStore();
 
-export const DirectorView = ({
-  tournamentName,
-  setTournamentName,
-  startingChips,
-  setStartingChips,
-  players,
-  currentLevel,
-  blindLevels,
-}: DirectorViewProps) => {
-  const [announcement, setAnnouncement] = useState("");
-  const [showAnnouncement, setShowAnnouncement] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   const activePlayers = players.filter((p) => p.status === "active");
   const totalChips = players.length * startingChips;
@@ -36,11 +29,16 @@ export const DirectorView = ({
   const bigBlindsAvg =
     blind.bigBlind > 0 ? Math.round(avgStack / blind.bigBlind) : 0;
 
+  const [inputText, setInputText] = useState("");
+
   const handleAnnounce = () => {
-    if (announcement.trim()) {
-      setShowAnnouncement(true);
-      setTimeout(() => setShowAnnouncement(false), 5000);
+    if (inputText.trim()) {
+      setAnnouncement(inputText.trim());
+      setInputText("");
+      setShowPreview(true);
+      setTimeout(() => setShowPreview(false), 3000);
     }
+    console.log("Announcement:", announcement);
   };
 
   return (
@@ -93,8 +91,8 @@ export const DirectorView = ({
         <div className="flex gap-2">
           <input
             type="text"
-            value={announcement}
-            onChange={(e) => setAnnouncement(e.target.value)}
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAnnounce()}
             placeholder="Break in 5 minutes..."
             className="flex-1 bg-muted text-foreground font-body px-4 py-2 rounded-xl border-2 border-border focus:border-primary outline-none"
@@ -103,9 +101,20 @@ export const DirectorView = ({
             📢
           </CartoonButton>
         </div>
-        {showAnnouncement && (
-          <div className="mt-3 p-3 bg-secondary/20 rounded-xl border-2 border-secondary text-foreground font-display text-center animate-bounce">
-            📣 {announcement}
+        {announcement && (
+          <div className="mt-3 p-3 bg-secondary/20 rounded-xl border-2 border-secondary text-foreground font-display text-center animate-bounce-stop">
+            <span>📣 {announcement}</span>
+            <button
+              onClick={() => setAnnouncement("")}
+              className="text-muted-foreground hover:text-foreground ml-2"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+        {showPreview && (
+          <div className="mt-2 text-xs text-center text-muted-foreground font-body">
+            ✅ Annonce envoyée au Dashboard !
           </div>
         )}
       </CartoonCard>

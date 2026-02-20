@@ -1,26 +1,32 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useTournamentStore } from "@/stores/tournament.store";
 import { CartoonCard } from "@/components/CartoonCard";
 import { CartoonButton } from "@/components/CartoonButton";
-import type { Player } from "@/hooks/useTournament";
-import { UserPlus, Skull, RotateCcw, Trash2 } from "lucide-react";
+import { getSavedPlayerNames } from "@/hooks/useTournament";
+import {
+  UserPlus,
+  Skull,
+  RotateCcw,
+  Trash2,
+  Plus,
+  Heart,
+  CircleDollarSign,
+} from "lucide-react";
 import dealerAvatar from "@/assets/dealer.svg";
 
-interface PlayersViewProps {
-  players: Player[];
-  addPlayer: (name: string) => void;
-  eliminatePlayer: (id: string) => void;
-  reinstatePlayer: (id: string) => void;
-  removePlayer: (id: string) => void;
-}
+export const PlayersView = () => {
+  const {
+    players,
+    addPlayer,
+    eliminatePlayer,
+    reinstatePlayer,
+    clearPlayers,
+    rebuy,
+    removePlayer,
+  } = useTournamentStore();
 
-export const PlayersView = ({
-  players,
-  addPlayer,
-  eliminatePlayer,
-  reinstatePlayer,
-  removePlayer,
-}: PlayersViewProps) => {
   const [newName, setNewName] = useState("");
+  const [savedNames, setSavedNames] = useState<string[]>(getSavedPlayerNames());
 
   const handleAdd = () => {
     if (newName.trim()) {
@@ -29,11 +35,35 @@ export const PlayersView = ({
     }
   };
 
+  const toggleSavePlayer = (name: string) => {
+    setSavedNames((prev) => {
+      if (prev.includes(name)) {
+        const next = prev.filter((n) => n !== name);
+        localStorage.setItem("favorite_players", JSON.stringify(next));
+        return next;
+      }
+
+      if (prev.length >= 6) {
+        return prev;
+      }
+
+      const next = [...prev, name];
+      localStorage.setItem("favorite_players", JSON.stringify(next));
+      return next;
+    });
+  };
+
   const activePlayers = players.filter((p) => p.status === "active");
   const eliminatedPlayers = players.filter((p) => p.status === "eliminated");
 
+  // Saved players not currently in the tournament
+  const savedAvailable = useMemo(() => {
+    const currentNames = new Set(players.map((p) => p.name));
+    return getSavedPlayerNames().filter((name) => !currentNames.has(name));
+  }, [players]);
+
   return (
-    <div className="space-y-4 pb-4">
+    <div className="space-y-6 pb-4">
       <div className="text-center tilt-right flex items-center justify-center gap-3">
         <img
           src={dealerAvatar}
@@ -60,58 +90,82 @@ export const PlayersView = ({
             <UserPlus size={20} />
           </CartoonButton>
         </div>
+
+        {/* Quick-add saved players */}
+        {savedAvailable.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {savedAvailable.map((name) => (
+              <button
+                key={name}
+                onClick={() => addPlayer(name)}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-xl border-2 border-primary/40 bg-primary/10 text-primary font-display text-sm hover:bg-primary/25 transition-colors"
+              >
+                <Plus size={14} />
+                {name}
+              </button>
+            ))}
+          </div>
+        )}
       </CartoonCard>
 
       {/* Active Players */}
       <div>
         <h3 className="text-lg font-display text-primary mb-2">
-          🎰 ACTIVE ({activePlayers.length})
+          🎰 IN GAME ({activePlayers.length})
         </h3>
-        <div
-          className="relative"
-          style={{ height: `${activePlayers.length * 80 + 54}px` }}
-        >
+        <div className="space-y-2">
           {activePlayers.map((player, i) => (
-            <div
+            <CartoonCard
               key={player.id}
-              className="absolute w-full transition-all duration-200 hover:z-10 hover:-translate-y-12"
-              style={{ top: `${i * 80}px`, zIndex: i }}
+              className={i % 2 === 0 ? "tilt-left" : "tilt-right"}
             >
-              <CartoonCard className={i % 2 === 0 ? "tilt-left" : "tilt-right"}>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-xs text-muted-foreground font-display">
-                      Seat {player.seat}
-                    </span>
-                    <p className="font-display text-lg text-foreground">
-                      {player.name}
-                    </p>
-                    <p className="text-sm text-primary font-body">
-                      💰 {player.chips.toLocaleString()}
-                    </p>
-                  </div>
-                  <div className="flex gap-1.5">
-                    <button
-                      onClick={() => eliminatePlayer(player.id)}
-                      className="p-2 rounded-lg bg-secondary/20 text-secondary hover:bg-secondary/40 transition-colors"
-                      title="Eliminate"
-                    >
-                      <Skull size={18} />
-                    </button>
-                    <button
-                      onClick={() => removePlayer(player.id)}
-                      className="p-2 rounded-lg bg-destructive/20 text-destructive hover:bg-destructive/40 transition-colors"
-                      title="Remove"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-xs text-muted-foreground font-display">
+                    Seat {player.seat}
+                  </span>
+                  <p className="font-display text-lg text-foreground">
+                    {player.name}
+                  </p>
+                  <p className="text-sm text-primary font-body">
+                    💰 {player.chips.toLocaleString()}
+                  </p>
                 </div>
-              </CartoonCard>
-            </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => toggleSavePlayer(player.name)}
+                    className="p-2 rounded-lg transition-colors cta-pop cta-pop-love"
+                    title={savedNames.includes(player.name) ? "Unsave" : "Save"}
+                  >
+                    <Heart
+                      size={18}
+                      fill={
+                        savedNames.includes(player.name)
+                          ? "currentColor"
+                          : "none"
+                      }
+                    />
+                  </button>
+                  <button
+                    onClick={() => eliminatePlayer(player.id)}
+                    className="p-2 rounded-lg transition-colors cta-pop cta-pop-danger"
+                    title="Eliminate"
+                  >
+                    <Skull size={18} />
+                  </button>
+                  <button
+                    onClick={() => removePlayer(player.id)}
+                    className="p-2 rounded-lg transition-colors cta-pop cta-pop-danger"
+                    title="Remove"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              </div>
+            </CartoonCard>
           ))}
           {activePlayers.length === 0 && (
-            <p className="text-center text-muted-foreground font-body py-8">
+            <p className="text-center text-xl text-muted-foreground font-body py-8">
               No players yet. Add some above! 🃏
             </p>
           )}
@@ -122,29 +176,47 @@ export const PlayersView = ({
       {eliminatedPlayers.length > 0 && (
         <div>
           <h3 className="text-lg font-display text-secondary mb-2">
-            💀 ELIMINATED ({eliminatedPlayers.length})
+            💀 OUT ({eliminatedPlayers.length})
           </h3>
           <div className="space-y-2">
             {eliminatedPlayers.map((player) => (
-              <CartoonCard key={player.id} className="opacity-60">
+              <CartoonCard key={player.id} variant="ghost">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-display text-lg text-foreground line-through">
+                    <p className="font-display text-lg text-foreground line-through opacity-60">
                       {player.name}
                     </p>
                   </div>
-                  <button
-                    onClick={() => reinstatePlayer(player.id)}
-                    className="p-2 rounded-lg bg-accent/20 text-accent hover:bg-accent/40 transition-colors"
-                    title="Reinstate"
-                  >
-                    <RotateCcw size={18} />
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => rebuy(player.id)}
+                      className="p-2 rounded-lg transition-colors cta-pop cta-pop-accent"
+                      title="Rebuy"
+                    >
+                      <CircleDollarSign size={18} />
+                    </button>
+                    <button
+                      onClick={() => reinstatePlayer(player.id)}
+                      className="p-2 rounded-lg transition-colors cta-pop cta-pop-love"
+                      title="Reinstate"
+                    >
+                      <RotateCcw size={18} />
+                    </button>
+                  </div>
                 </div>
               </CartoonCard>
             ))}
           </div>
         </div>
+      )}
+      {players.length > 1 && (
+        <CartoonButton
+          variant="danger-light"
+          onClick={() => clearPlayers()}
+          className="w-full mt-4"
+        >
+          Clear All Players
+        </CartoonButton>
       )}
     </div>
   );

@@ -6,6 +6,7 @@ export interface Player {
   chips: number;
   status: "active" | "eliminated";
   seat: number;
+  rebuyCount: number;
 }
 
 export interface BlindLevel {
@@ -29,6 +30,15 @@ const DEFAULT_BLINDS: BlindLevel[] = [
   { level: 10, smallBlind: 1000, bigBlind: 2000, ante: 300, duration: 10 },
 ];
 
+export const getSavedPlayerNames = (): string[] => {
+  try {
+    const saved = localStorage.getItem("favorite_players");
+    return saved ? JSON.parse(saved) : [];
+  } catch {
+    return [];
+  }
+};
+
 export const useTournament = () => {
   const [players, setPlayers] = useState<Player[]>([]);
   const [blindLevels] = useState<BlindLevel[]>(DEFAULT_BLINDS);
@@ -39,6 +49,7 @@ export const useTournament = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [tournamentName, setTournamentName] = useState("CRAZY POKER NIGHT");
   const [startingChips, setStartingChips] = useState(10000);
+  const [announcement, setAnnouncement] = useState("");
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -77,6 +88,7 @@ export const useTournament = () => {
           chips: startingChips,
           status: "active",
           seat: prev.length + 1,
+          rebuyCount: 0,
         },
       ]);
     },
@@ -96,6 +108,24 @@ export const useTournament = () => {
       prev.map((p) => (p.id === id ? { ...p, status: "active" as const } : p)),
     );
   }, []);
+
+  const rebuy = useCallback(
+    (id: string) => {
+      setPlayers((prev) =>
+        prev.map((p) =>
+          p.id === id
+            ? {
+                ...p,
+                status: "active",
+                chips: p.chips + startingChips,
+                rebuyCount: p.rebuyCount + 1,
+              }
+            : p,
+        ),
+      );
+    },
+    [startingChips],
+  );
 
   const removePlayer = useCallback((id: string) => {
     setPlayers((prev) => prev.filter((p) => p.id !== id));
@@ -128,11 +158,14 @@ export const useTournament = () => {
     isRunning,
     tournamentName,
     startingChips,
+    announcement,
     setTournamentName,
     setStartingChips,
+    setAnnouncement,
     addPlayer,
     eliminatePlayer,
     reinstatePlayer,
+    rebuy,
     removePlayer,
     toggleTimer,
     resetTimer,

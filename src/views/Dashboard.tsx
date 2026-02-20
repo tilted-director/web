@@ -1,16 +1,7 @@
+import { useTournamentStore } from "@/stores/tournament.store";
 import { CartoonCard } from "@/components/CartoonCard";
-import type { BlindLevel, Player } from "@/hooks/useTournament";
-import { Crown, Users, Layers, Coins } from "lucide-react";
+import { Crown, Users, Layers, Coins, X } from "lucide-react";
 import pokerScene from "@/assets/tilted-director.png";
-
-interface DashboardViewProps {
-  tournamentName: string;
-  players: Player[];
-  currentLevel: number;
-  blindLevels: BlindLevel[];
-  timeRemaining: number;
-  isRunning: boolean;
-}
 
 const formatTime = (s: number) => {
   const m = Math.floor(s / 60);
@@ -18,20 +9,24 @@ const formatTime = (s: number) => {
   return `${m.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
 };
 
-export const DashboardView = ({
-  tournamentName,
-  players,
-  currentLevel,
-  blindLevels,
-  timeRemaining,
-  isRunning,
-}: DashboardViewProps) => {
+export const DashboardView = () => {
+  const {
+    tournamentName,
+    players,
+    currentLevel,
+    blindLevels,
+    timeRemaining,
+    isRunning,
+    announcement,
+    setAnnouncement,
+  } = useTournamentStore();
+
   const activePlayers = players.filter((p) => p.status === "active").length;
   const eliminatedPlayers = players.filter(
     (p) => p.status === "eliminated",
   ).length;
   const blind = blindLevels[currentLevel];
-  const totalChips = players.length * 10000;
+  const totalChips = players.reduce((sum, p) => sum + p.chips, 0);
 
   return (
     <div className="space-y-4 pb-4">
@@ -49,6 +44,23 @@ export const DashboardView = ({
           🃏 Tournament Director 🃏
         </p>
       </div>
+
+      {/* Announcement Banner */}
+      {announcement && (
+        <CartoonCard variant="red">
+          <div className="flex items-center justify-between">
+            <span className="font-display text-foreground">
+              📣 {announcement}
+            </span>
+            <button
+              onClick={() => setAnnouncement("")}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <X size={18} />
+            </button>
+          </div>
+        </CartoonCard>
+      )}
 
       {/* Current Blinds - Hero Card */}
       <CartoonCard variant="gold" className="tilt-right text-center">

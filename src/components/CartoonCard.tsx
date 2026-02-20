@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 interface CartoonCardProps {
   children: ReactNode;
   className?: string;
-  variant?: "default" | "gold" | "red" | "tilted";
+  variant?: "default" | "gold" | "red" | "tilted" | "ghost";
   onClick?: () => void;
 }
 
@@ -16,6 +16,7 @@ export const CartoonCard = ({
 }: CartoonCardProps) => {
   const variants = {
     default: "cartoon-border bg-card",
+    ghost: "cartoon-border-ghost bg-card",
     gold: "cartoon-border-gold bg-card",
     red: "border-4 border-chip-red bg-card cartoon-shadow rounded-2xl",
     tilted: "cartoon-border bg-card tilt-left",

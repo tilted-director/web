@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 interface CartoonButtonProps {
   children: ReactNode;
   className?: string;
-  variant?: "primary" | "secondary" | "accent" | "danger";
+  variant?: "primary" | "secondary" | "accent" | "danger" | "danger-light";
   size?: "sm" | "md" | "lg";
   onClick?: () => void;
   disabled?: boolean;
@@ -27,6 +27,8 @@ export const CartoonButton = ({
       "bg-accent text-accent-foreground border-accent-foreground/30 hover:brightness-110",
     danger:
       "bg-destructive text-destructive-foreground border-destructive-foreground/30 hover:brightness-110",
+    "danger-light":
+      "bg-destructive/60 text-destructive-foreground/80 border-destructive-foreground/30 hover:brightness-110",
   };
 
   const sizes = {
