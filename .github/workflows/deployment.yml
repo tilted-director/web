@@ -1,8 +1,7 @@
 name: Deploy the app to GitHub Pages
 
 on:
-  pull_request:
-    types: [reopened, opened, synchronize, ready_for_review]
+  push:
     branches: [main]
 
 jobs:
