@@ -16,7 +16,6 @@ export const DashboardView = () => {
     currentLevel,
     blindLevels,
     timeRemaining,
-    isRunning,
     announcement,
     setAnnouncement,
   } = useTournamentStore();
@@ -63,23 +62,42 @@ export const DashboardView = () => {
       )}
 
       {/* Current Blinds - Hero Card */}
-      <CartoonCard variant="gold" className="tilt-right text-center">
-        <p className="text-xs text-muted-foreground font-display tracking-widest uppercase">
-          Level {blind.level}
-        </p>
-        <div className="text-3xl font-display text-primary text-outline my-1">
-          {blind.smallBlind.toLocaleString()} /{" "}
-          {blind.bigBlind.toLocaleString()}
-        </div>
-        {blind.ante > 0 && (
-          <p className="text-sm text-secondary font-display">
-            Ante: {blind.ante}
+      <CartoonCard
+        variant="gold"
+        className="tilt-right text-center flex justify-evenly items-center w-full"
+      >
+        <div className="font-display text-primary text-outline w-1/3">
+          <p className="text-xl text-foreground/90 font-display tracking-widest uppercase">
+            Level {blind.level}
           </p>
-        )}
-        <div
-          className={`text-2xl font-display mt-2 ${isRunning ? "text-secondary pulse-glow inline-block rounded-lg px-3" : "text-foreground"}`}
-        >
-          ⏱ {formatTime(timeRemaining)}
+          <p className="text-3xl">
+            {blind.smallBlind.toLocaleString()} /{" "}
+            {blind.bigBlind.toLocaleString()}
+          </p>
+
+          {blind.ante > 0 && (
+            <p className="text-xl text-secondary/80 font-display">
+              Ante: {blind.ante}
+            </p>
+          )}
+        </div>
+        <div className="w-1/3">
+          <div className="text-6xl font-display text-foreground">
+            {formatTime(timeRemaining)}
+          </div>
+        </div>
+        {/* <div className="w-1/3"></div> */}
+        <div className="text-3xl font-display text-primary text-outline w-1/3">
+          <div className="flex items-center justify-center gap-2 text-xl">
+            <Users size={20} className="text-primary" />
+            <span className="text-foreground/90 font-display">Players</span>
+          </div>
+          <p className="text-4xl font-display text-foreground/90 mt-1">
+            {activePlayers}
+            <span className="text-xl text-muted-foreground">
+              /{players.length}
+            </span>
+          </p>
         </div>
       </CartoonCard>
 

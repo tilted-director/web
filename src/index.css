@@ -26,6 +26,7 @@
   --color-chip-red: hsl(var(--chip-red));
   --color-chip-blue: hsl(var(--chip-blue));
   --color-chip-black: hsl(var(--chip-black));
+  --color-pink-love: hsl(var(--pink-love));
   --color-sidebar: hsl(var(--sidebar-background));
   --color-sidebar-foreground: hsl(var(--sidebar-foreground));
   --color-sidebar-primary: hsl(var(--sidebar-primary));
