@@ -35,13 +35,13 @@ export const DashboardView = () => {
         <img
           src={pokerScene}
           alt="Poker dealer"
-          className="w-28 h-28 mx-auto -mb-2 drop-shadow-lg float-animation"
+          className="w-32 h-32 mx-auto -mb-2 drop-shadow-lg float-animation"
         />
-        <h1 className="text-4xl font-display text-primary text-outline drop-shadow-lg">
+        <h1 className="text-5xl font-display text-primary text-outline drop-shadow-lg">
           {tournamentName}
         </h1>
         <p className="text-muted-foreground font-body text-sm mt-1">
-          🃏 Tournament Director 🃏
+          🃏 The Tilted Tournament Director 🃏
         </p>
       </div>
 
