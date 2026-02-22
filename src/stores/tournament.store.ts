@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { getTime } from "date-fns";
 import { generateId } from "@/lib/utils";
 import type { Player, BlindLevel } from "@/domain/types/tournament.types";
 import CLASSIC from "@/domain/structures/classic.json";
@@ -23,6 +24,7 @@ type TournamentStore = {
   setStartingChips: (chips: number) => void;
   setAnnouncement: (msg: string) => void;
   setPayoutStructure: (structure: number[]) => void;
+  setLevel: (level: number) => void;
 
   // actions
   addPlayer: (name: string) => void;
@@ -137,6 +139,17 @@ export const useTournamentStore = create<
 
       toggleTimer: () => {
         const running = get().isRunning;
+        const currentLevel = get().currentLevel;
+        const blindLevels = get().blindLevels;
+
+        if (!running && currentLevel === 0) {
+          const updatedBlindLevels = [...blindLevels];
+          updatedBlindLevels[0] = {
+            ...updatedBlindLevels[0],
+            startTimeInMs: getTime(new Date()),
+          };
+          set({ blindLevels: updatedBlindLevels });
+        }
         set({ isRunning: !running });
         if (!running) get().startTimerLoop();
         else get().stopTimerLoop();

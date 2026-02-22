@@ -1,3 +1,5 @@
+import { getTime, format } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 import { useTournamentStore } from "@/stores/tournament.store";
 import { CartoonCard } from "@/components/CartoonCard";
 import { Crown, Users, Layers, Coins, X, Trophy, Landmark } from "lucide-react";
@@ -8,6 +10,8 @@ const formatTime = (s: number) => {
   const sec = s % 60;
   return `${m.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
 };
+const formatLocalTimeShort = (d: Date) => format(d, "HH:mm");
+const formatTimeLong = (d: Date) => formatInTimeZone(d, "UTC", "HH:mm:ss");
 
 export const DashboardView = () => {
   const {
@@ -18,6 +22,7 @@ export const DashboardView = () => {
     timeRemaining,
     announcement,
     payoutStructure,
+    isRunning,
     setAnnouncement,
     getPrizePool,
   } = useTournamentStore();
@@ -188,18 +193,44 @@ export const DashboardView = () => {
 
       {/* Next Blinds Preview */}
       {currentLevel < blindLevels.length - 1 && (
-        <CartoonCard variant="default" className="opacity-75">
-          <p className="text-xs text-muted-foreground font-display tracking-widest">
-            NEXT UP
-          </p>
-          <p className="text-lg font-display text-foreground">
-            Level {blindLevels[currentLevel + 1].level}:{" "}
-            {blindLevels[currentLevel + 1].smallBlind.toLocaleString()} /{" "}
-            {blindLevels[currentLevel + 1].bigBlind.toLocaleString()}
-            {blindLevels[currentLevel + 1].ante > 0 &&
-              ` (ante ${blindLevels[currentLevel + 1].ante})`}
-          </p>
-          <p className="text-destructive">NEXT TIME</p>
+        <CartoonCard variant="default" className="opacity-75 flex">
+          <div className="w-1/3">
+            <p className="text-xs text-muted-foreground font-display tracking-widest">
+              NEXT UP:
+              <span className="text-destructive ms-1">
+                {formatTime(blindLevels[currentLevel + 1].duration * 60)}
+              </span>
+            </p>
+            <p className="text-lg font-display text-foreground">
+              Level {blindLevels[currentLevel + 1].level}:{" "}
+              {blindLevels[currentLevel + 1].smallBlind.toLocaleString()} /{" "}
+              {blindLevels[currentLevel + 1].bigBlind.toLocaleString()}
+              {blindLevels[currentLevel + 1].ante > 0 &&
+                ` (ante ${blindLevels[currentLevel + 1].ante})`}
+            </p>
+          </div>
+          <div className="w-1/3 flex flex-col items-center">
+            <p className="text-xs text-muted-foreground font-display tracking-widest">
+              Total time
+            </p>
+            <p className="text-lg font-display text-foreground">
+              {isRunning
+                ? formatTimeLong(
+                    new Date(
+                      getTime(new Date()) - blindLevels[0].startTimeInMs,
+                    ),
+                  )
+                : "Not started"}
+            </p>
+          </div>
+          <div className="w-1/3 flex flex-col items-end">
+            <p className="text-xs text-muted-foreground font-display tracking-widest">
+              Current time
+            </p>
+            <p className="text-lg font-display text-foreground">
+              {formatLocalTimeShort(new Date())}
+            </p>
+          </div>
         </CartoonCard>
       )}
     </div>
