@@ -208,7 +208,7 @@ export const DirectorView = () => {
 
       {/* Payouts Modal */}
       <Dialog open={showPayouts} onOpenChange={setShowPayouts}>
-        <DialogContent className="bg-card border-4 border-primary rounded-2xl w-1/2 mx-auto">
+        <DialogContent className="bg-card border-4 border-primary rounded-2xl max-w-5/6 sm:w-2/3 lg:w-1/2 mx-auto">
           <DialogHeader>
             <DialogTitle className="font-display text-2xl text-primary text-center flex items-center justify-center gap-2">
               <Trophy size={24} /> PAYOUTS
