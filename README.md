@@ -1,47 +1,30 @@
-# Tilted Director
+# Tilted Director 🃏
 
-Table de bord ludique pour diriger un tournoi de poker : suivi des niveaux de blindes, gestion des joueurs et statistiques clés dans une interface cartoon déjantée.
+Un tableau de bord ludique pour diriger facilement un tournoi simple de poker : gestion des joueurs, suivi des blindes en temps réel, et statistiques clés à portée de main.
 
-## Aperçu rapide
-
-- **Dashboard** : résumé du tournoi (joueurs actifs/éliminés, niveau en cours, temps restant) via [`DashboardView`](src/views/Dashboard.tsx).
-- **Timer** : minuteur de blindes interactif (play/pause, précédent/suivant, reset) avec structure affichée dans [`TimerView`](src/views/Timer.tsx).
-- **Players** : ajout, élimination/réintégration, suppression et affichage par sièges dans [`PlayersView`](src/views/Players.tsx).
-- **Director** : réglages (nom, tapis de départ), annonces et stats moyennes dans [`DirectorView`](src/views/Director.tsx).
-- **Navigation** : barre inférieure pilotant les vues dans [`BottomNav`](src/common/layout/BottomNav.tsx).
-- **Logique centrale** : état du tournoi (joueurs, blindes, minuteur) géré par [`useTournament`](src/hooks/useTournament.tsx) et orchestré dans [`Index`](src/modules/Index.tsx).
-
-## Pile technique
-
-- [React 19](package.json) + [Vite 7](vite.config.ts)
-- TypeScript strict ([tsconfig.app.json](tsconfig.app.json))
-- Tailwind CSS v4 + utilitaires d’animation (voir [src/index.css](src/index.css))
-- Icôn
-  es : lucide-react
-
-## 🚀 Déploiement
-
-L'application est déployée et accessible à l'adresse : **https://tilted-director.github.io/web/**
-
-## Scripts PNPM
+## 🚀 Démarrage rapide
 
 ```bash
-pnpm install  # installer les dépendences du projet
-pnpm dev      # démarre Vite en mode dev
-pnpm build    # tsc -b puis vite build
-pnpm preview  # prévisualisation de la build
+pnpm install  # installer les dépendances
+pnpm dev      # lancer en mode développement
+# Ouvrir http://localhost:5173
 ```
 
-## Structure
+## ✨ Fonctionnalités
 
-- `src/components/` : UI réutilisable (ex. `CartoonCard`, `CartoonButton`).
-- `src/views/` : vues métier.
-- `src/hooks/` : logique état/données.
-- `src/common/layout/` : navigation.
-- `src/assets/` : visuels.
+- **Dashboard** : aperçu du tournoi (joueurs actifs, niveau actuel, temps restant, pool de prizes)
+- **Timer** : minuteur de blindes interactif avec contrôles play/pause/précédent/suivant
+- **Gestion des joueurs** : ajout, élimination, rebuys, add-ons, affichage par sièges
+- **Configurations** : réglages du tournoi (nom, tapis de départ, annonces)
+- **Interface cartoon** : design ludique et déjanté pour une ambiance fun
 
-## Démarrage
+## 🛠 Tech Stack
 
-1. `pnpm install`
-2. `pnpm dev`
-3. Ouvrir http://localhost:5173
+- React 19 + Vite + TypeScript
+- Tailwind CSS v4
+- Zustand pour la gestion d'état
+- lucide-react pour les icônes
+
+## 🌐 Déploiement
+
+Accessible en ligne : **https://tilted-director.github.io/web/**
