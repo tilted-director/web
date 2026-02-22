@@ -61,7 +61,7 @@ export const useTournamentStore = create<
       currentLevel: 0,
       timeRemaining: CLASSIC[0].duration * 60,
       isRunning: false,
-      tournamentName: "CRAZY POKER NIGHT",
+      tournamentName: "The tilted tournament",
       startingChips: 10000,
       announcement: "",
       addOnChips: 5000,
