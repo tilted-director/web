@@ -17,6 +17,7 @@ export const DashboardView = () => {
     blindLevels,
     timeRemaining,
     announcement,
+    payoutStructure,
     setAnnouncement,
     getPrizePool,
   } = useTournamentStore();
@@ -29,6 +30,7 @@ export const DashboardView = () => {
   const totalChips = players.reduce((sum, p) => sum + p.chips, 0);
   const averageChips = totalChips / activePlayers || 0;
   const averageToBigBlind = averageChips / blind.bigBlind;
+  const ITMPlayers = payoutStructure.length;
 
   return (
     <div className="space-y-4 pb-4">
@@ -127,7 +129,7 @@ export const DashboardView = () => {
               <Trophy size={20} className="text-primary" />
             </div>
             <p className="text-2xl font-display text-foreground mt-1 me-1">
-              2
+              {ITMPlayers}
               <span className="text-lg text-muted-foreground">
                 /{players.length}
               </span>

@@ -16,11 +16,13 @@ type TournamentStore = {
   announcement: string;
   addOnChips: number;
   addOn: number;
+  payoutStructure: number[];
 
   // setters
   setTournamentName: (name: string) => void;
   setStartingChips: (chips: number) => void;
   setAnnouncement: (msg: string) => void;
+  setPayoutStructure: (structure: number[]) => void;
 
   // actions
   addPlayer: (name: string) => void;
@@ -62,10 +64,11 @@ export const useTournamentStore = create<
       announcement: "",
       addOnChips: 5000,
       addOn: 10,
-
+      payoutStructure: [50, 30, 20],
       setTournamentName: (name) => set({ tournamentName: name }),
       setStartingChips: (chips) => set({ startingChips: chips }),
       setAnnouncement: (msg) => set({ announcement: msg }),
+      setPayoutStructure: (structure) => set({ payoutStructure: structure }),
 
       addPlayer: (name) =>
         set((state) => ({
