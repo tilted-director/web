@@ -16,7 +16,7 @@ jobs:
       - name: 🔍 Validate PR title and version
         run: |
           TITLE="${{ github.event.pull_request.title }}"
-          PATTERN="^release: v([0-9]+\.[0-9]+\.[0-9]+) — .+ \([0-9]{4}-[0-9]{2}-[0-9]{2}\)$"
+          PATTERN="^release\(v([0-9]+\.[0-9]+\.[0-9]+)\):[[:space:]]+.+[[:space:]]\[[0-9]{4}\.[0-9]{2}\.[0-9]{2}\]$"
 
           if [[ $TITLE =~ $PATTERN ]]; then
             echo "✅ PR title format is correct: $TITLE"
@@ -36,7 +36,7 @@ jobs:
             fi
           else
             echo "❌ PR title format is incorrect"
-            echo "Expected format: release: vX.Y.Z — Description (YYYY-MM-DD)"
+            echo "Expected format: release(vX.Y.Z): Description [YYYY-MM-DD]"
             echo "Current title: $TITLE"
             exit 1
           fi
