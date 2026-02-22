@@ -74,9 +74,9 @@ export const DashboardView = () => {
       {/* Current Blinds - Hero Card */}
       <CartoonCard
         variant="gold"
-        className="tilt-right text-center flex justify-evenly items-center w-full"
+        className="tilt-right text-center grid grid-rows-2 grid-cols-2 sm:flex justify-evenly items-center w-full"
       >
-        <div className="font-display text-primary text-outline w-1/3">
+        <div className="font-display text-primary text-outline sm:w-1/3 row-start-2 col-span-1">
           <p className="text-xl text-foreground/90 font-display tracking-widest uppercase">
             Level {blind.level}
           </p>
@@ -91,13 +91,12 @@ export const DashboardView = () => {
             </p>
           )}
         </div>
-        <div className="w-1/3">
+        <div className="row-start-1 col-span-2 flex items-center justify-center sm:w-1/3">
           <div className="text-6xl font-display text-foreground">
             {formatTime(timeRemaining)}
           </div>
         </div>
-        {/* <div className="w-1/3"></div> */}
-        <div className="text-3xl font-display text-primary text-outline w-1/3">
+        <div className="text-3xl font-display text-primary text-outline sm:w-1/3 row-start-2 col-span-1">
           <div className="flex items-center justify-center gap-2 text-xl">
             <Users size={20} className="text-primary" />
             <span className="text-foreground/90 font-display">Players</span>
@@ -113,20 +112,20 @@ export const DashboardView = () => {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-3">
-        <CartoonCard className="tilt-left flex">
-          <div className="w-1/2">
+        <CartoonCard className="tilt-left flex flex-col sm:flex-row items-center">
+          <div className="sm:w-1/2">
             <div className="flex items-center gap-2">
               <Landmark size={20} className="text-primary" />
               <span className="text-xs text-muted-foreground font-display">
                 Prize pool
               </span>
             </div>
-            <p className="text-2xl font-display text-foreground mt-1 ms-1">
+            <p className="text-2xl text-center sm:text-start font-display text-foreground mt-1 ms-1">
               {getPrizePool().toLocaleString()}
               <span className="text-sm text-muted-foreground ms-1">$</span>
             </p>
           </div>
-          <div className="w-1/2 flex flex-col items-end">
+          <div className="w-1/2 hidden sm:flex flex-col items-end ">
             <div className="flex items-center gap-2">
               <span className="text-xs text-muted-foreground font-display">
                 Top paid
@@ -143,25 +142,25 @@ export const DashboardView = () => {
         </CartoonCard>
 
         <CartoonCard className="tilt-right">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-center sm:justify-start gap-2">
             <Crown size={20} className="text-primary" />
             <span className="text-xs text-muted-foreground font-display">
               Eliminated
             </span>
           </div>
-          <p className="text-2xl font-display text-secondary mt-1">
+          <p className="text-2xl font-display text-secondary text-center sm:text-start justify-center sm:justify-start sm:mt-1">
             {eliminatedPlayers}
           </p>
         </CartoonCard>
 
         <CartoonCard className="tilt-right">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-center sm:justify-start gap-2">
             <Layers size={20} className="text-primary" />
             <span className="text-xs text-muted-foreground font-display">
               Level
             </span>
           </div>
-          <p className="text-2xl font-display text-foreground mt-1">
+          <p className="text-2xl text-center sm:text-start font-display text-foreground mt-1">
             {currentLevel + 1}
             <span className="text-sm text-muted-foreground">
               /{blindLevels.length}
@@ -170,13 +169,13 @@ export const DashboardView = () => {
         </CartoonCard>
 
         <CartoonCard className="tilt-left">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-center sm:justify-start gap-2">
             <Coins size={20} className="text-primary" />
             <span className="text-xs text-muted-foreground font-display">
               Average Chips
             </span>
           </div>
-          <p className="text-xl font-display text-foreground mt-1 ms-1">
+          <p className="text-xl font-display text-foreground text-center sm:text-start mt-1 ms-1">
             {averageChips.toLocaleString(undefined, {
               maximumFractionDigits: 0,
             })}
@@ -193,8 +192,11 @@ export const DashboardView = () => {
 
       {/* Next Blinds Preview */}
       {currentLevel < blindLevels.length - 1 && (
-        <CartoonCard variant="default" className="opacity-75 flex">
-          <div className="w-1/3">
+        <CartoonCard
+          variant="default"
+          className="opacity-75 grid grid-cols-2 grid-rows-2 sm:flex"
+        >
+          <div className="sm:w-1/3 col-span-2 flex flex-col items-center sm:items-start">
             <p className="text-xs text-muted-foreground font-display tracking-widest">
               NEXT UP:
               <span className="text-destructive ms-1">
@@ -209,7 +211,7 @@ export const DashboardView = () => {
                 ` (ante ${blindLevels[currentLevel + 1].ante})`}
             </p>
           </div>
-          <div className="w-1/3 flex flex-col items-center">
+          <div className="sm:w-1/3 flex flex-col items-center col-span-1">
             <p className="text-xs text-muted-foreground font-display tracking-widest">
               Total time
             </p>
@@ -221,7 +223,7 @@ export const DashboardView = () => {
                 : "Not started"}
             </p>
           </div>
-          <div className="w-1/3 flex flex-col items-end">
+          <div className="sm:w-1/3 flex flex-col items-center sm:items-end col-span-1">
             <p className="text-xs text-muted-foreground font-display tracking-widest">
               Current time
             </p>
