@@ -1,6 +1,6 @@
 import { useTournamentStore } from "@/stores/tournament.store";
 import { CartoonCard } from "@/components/CartoonCard";
-import { Crown, Users, Layers, Coins, X } from "lucide-react";
+import { Crown, Users, Layers, Coins, X, Trophy, Landmark } from "lucide-react";
 import pokerScene from "@/assets/tilted-director.png";
 
 const formatTime = (s: number) => {
@@ -18,6 +18,7 @@ export const DashboardView = () => {
     timeRemaining,
     announcement,
     setAnnouncement,
+    getPrizePool,
   } = useTournamentStore();
 
   const activePlayers = players.filter((p) => p.status === "active").length;
@@ -26,6 +27,8 @@ export const DashboardView = () => {
   ).length;
   const blind = blindLevels[currentLevel];
   const totalChips = players.reduce((sum, p) => sum + p.chips, 0);
+  const averageChips = totalChips / activePlayers || 0;
+  const averageToBigBlind = averageChips / blind.bigBlind;
 
   return (
     <div className="space-y-4 pb-4">
@@ -103,19 +106,33 @@ export const DashboardView = () => {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-3">
-        <CartoonCard className="tilt-left">
-          <div className="flex items-center gap-2">
-            <Users size={20} className="text-primary" />
-            <span className="text-xs text-muted-foreground font-display">
-              Players
-            </span>
+        <CartoonCard className="tilt-left flex">
+          <div className="w-1/2">
+            <div className="flex items-center gap-2">
+              <Landmark size={20} className="text-primary" />
+              <span className="text-xs text-muted-foreground font-display">
+                Prize pool
+              </span>
+            </div>
+            <p className="text-2xl font-display text-foreground mt-1 ms-1">
+              {getPrizePool().toLocaleString()}
+              <span className="text-sm text-muted-foreground ms-1">$</span>
+            </p>
           </div>
-          <p className="text-2xl font-display text-foreground mt-1">
-            {activePlayers}
-            <span className="text-sm text-muted-foreground">
-              /{players.length}
-            </span>
-          </p>
+          <div className="w-1/2 flex flex-col items-end">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground font-display">
+                Top paid
+              </span>
+              <Trophy size={20} className="text-primary" />
+            </div>
+            <p className="text-2xl font-display text-foreground mt-1 me-1">
+              2
+              <span className="text-lg text-muted-foreground">
+                /{players.length}
+              </span>
+            </p>
+          </div>
         </CartoonCard>
 
         <CartoonCard className="tilt-right">
@@ -149,11 +166,20 @@ export const DashboardView = () => {
           <div className="flex items-center gap-2">
             <Coins size={20} className="text-primary" />
             <span className="text-xs text-muted-foreground font-display">
-              Total Chips
+              Average Chips
             </span>
           </div>
-          <p className="text-xl font-display text-foreground mt-1">
-            {totalChips.toLocaleString()}
+          <p className="text-xl font-display text-foreground mt-1 ms-1">
+            {averageChips.toLocaleString(undefined, {
+              maximumFractionDigits: 0,
+            })}
+            <span className="text-sm text-muted-foreground">
+              /
+              {averageToBigBlind.toLocaleString(undefined, {
+                maximumFractionDigits: 0,
+              })}
+              BB
+            </span>
           </p>
         </CartoonCard>
       </div>
@@ -171,6 +197,7 @@ export const DashboardView = () => {
             {blindLevels[currentLevel + 1].ante > 0 &&
               ` (ante ${blindLevels[currentLevel + 1].ante})`}
           </p>
+          <p className="text-destructive">NEXT TIME</p>
         </CartoonCard>
       )}
     </div>
