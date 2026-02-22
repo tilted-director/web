@@ -14,4 +14,5 @@ export type BlindLevel = {
   bigBlind: number;
   ante: number;
   duration: number;
+  startTimeInMs: number;
 };

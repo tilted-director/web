@@ -17,7 +17,7 @@ const Index = () => {
   const ActiveViewComponent = VIEWS[activeView];
 
   return (
-    <div className="min-h-screen gradient-felt max-w-2xl mx-auto px-4 pt-4 pb-24">
+    <div className="min-h-screen gradient-felt max-w-4xl mx-auto px-6 pt-6 pb-24">
       <ActiveViewComponent />
       <BottomNav activeView={activeView} onNavigate={setActiveView} />
     </div>

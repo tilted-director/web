@@ -2,7 +2,20 @@ import { useState } from "react";
 import { useTournamentStore } from "@/stores/tournament.store";
 import { CartoonCard } from "@/components/CartoonCard";
 import { CartoonButton } from "@/components/CartoonButton";
-import { Shuffle, Award, AlertTriangle } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Shuffle,
+  Award,
+  AlertTriangle,
+  Trophy,
+  Minus,
+  Plus,
+} from "lucide-react";
 
 export const DirectorView = () => {
   const {
@@ -10,6 +23,9 @@ export const DirectorView = () => {
     setTournamentName,
     startingChips,
     setStartingChips,
+    payoutStructure,
+    setPayoutStructure,
+    getPrizePool,
     players,
     currentLevel,
     blindLevels,
@@ -18,6 +34,7 @@ export const DirectorView = () => {
   } = useTournamentStore();
 
   const [showPreview, setShowPreview] = useState(false);
+  const [showPayouts, setShowPayouts] = useState(false);
 
   const activePlayers = players.filter((p) => p.status === "active");
   const totalChips = players.length * startingChips;
@@ -28,6 +45,7 @@ export const DirectorView = () => {
   const blind = blindLevels[currentLevel];
   const bigBlindsAvg =
     blind.bigBlind > 0 ? Math.round(avgStack / blind.bigBlind) : 0;
+  const totalPayout = payoutStructure.reduce((a, b) => a + b, 0);
 
   const [inputText, setInputText] = useState("");
 
@@ -38,7 +56,24 @@ export const DirectorView = () => {
       setShowPreview(true);
       setTimeout(() => setShowPreview(false), 3000);
     }
-    console.log("Announcement:", announcement);
+  };
+
+  const removePlace = () => {
+    if (payoutStructure.length > 1) {
+      setPayoutStructure(payoutStructure.slice(0, -1));
+    }
+  };
+
+  const addPlace = () => {
+    if (payoutStructure.length < players.length) {
+      setPayoutStructure([...payoutStructure, 0]);
+    }
+  };
+
+  const updatePayout = (index: number, value: number) => {
+    const newStructure = [...payoutStructure];
+    newStructure[index] = value;
+    setPayoutStructure(newStructure);
   };
 
   return (
@@ -159,7 +194,10 @@ export const DirectorView = () => {
             Shuffle seating
           </p>
         </CartoonCard>
-        <CartoonCard className="tilt-right text-center cursor-pointer wobble-hover">
+        <CartoonCard
+          className="tilt-right text-center cursor-pointer wobble-hover"
+          onClick={() => setShowPayouts(true)}
+        >
           <Award size={24} className="mx-auto text-primary mb-1" />
           <p className="font-display text-sm text-foreground">Payouts</p>
           <p className="text-xs text-muted-foreground font-body">
@@ -167,6 +205,104 @@ export const DirectorView = () => {
           </p>
         </CartoonCard>
       </div>
+
+      {/* Payouts Modal */}
+      <Dialog open={showPayouts} onOpenChange={setShowPayouts}>
+        <DialogContent className="bg-card border-4 border-primary rounded-2xl w-1/2 mx-auto">
+          <DialogHeader>
+            <DialogTitle className="font-display text-2xl text-primary text-center flex items-center justify-center gap-2">
+              <Trophy size={24} /> PAYOUTS
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Place count controls */}
+            <div className="flex items-center justify-between">
+              <span className="font-display text-sm text-muted-foreground">
+                In the money
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={removePlace}
+                  className="p-1.5 rounded-lg bg-muted hover:bg-muted/80 text-foreground transition-colors"
+                >
+                  <Minus size={16} />
+                </button>
+                <span className="font-display text-lg text-foreground w-8 text-center">
+                  {payoutStructure.length}
+                </span>
+                <button
+                  onClick={addPlace}
+                  className="p-1.5 rounded-lg bg-muted hover:bg-muted/80 text-foreground transition-colors"
+                >
+                  <Plus size={16} />
+                </button>
+              </div>
+            </div>
+
+            {/* Payout inputs */}
+            <div className="space-y-2">
+              {payoutStructure.map((pct, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 w-20">
+                    <span className="text-lg">
+                      {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : ""}
+                    </span>
+                    <span className="font-display text-sm text-muted-foreground">
+                      {i + 1}
+                      {i === 0 ? "er" : "e"}
+                    </span>
+                  </div>
+                  <input
+                    type="number"
+                    value={pct}
+                    onChange={(e) => updatePayout(i, Number(e.target.value))}
+                    className="flex-1 bg-muted text-foreground font-display text-center px-3 py-2 rounded-xl border-2 border-border focus:border-primary outline-none"
+                  />
+                  <span className="font-display text-muted-foreground">%</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Total indicator */}
+            <div
+              className={`text-center font-display text-lg ${totalPayout === 100 ? "text-primary" : "text-destructive"}`}
+            >
+              Total: {totalPayout}%
+              {totalPayout !== 100 && (
+                <span className="text-xs block text-destructive">
+                  (must be 100%)
+                </span>
+              )}
+            </div>
+
+            {/* Summary */}
+            {totalPayout === 100 && players.length > 0 && (
+              <div className="bg-muted/50 rounded-xl p-3 space-y-1">
+                <p className="font-display text-xs text-muted-foreground tracking-widest">
+                  SUMMARY
+                </p>
+                {payoutStructure.map((pct, i) => (
+                  <div
+                    key={i}
+                    className="flex justify-between font-body text-sm"
+                  >
+                    <span className="text-muted-foreground">
+                      {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : "🎖️"}{" "}
+                      Place {i + 1}
+                    </span>
+                    <div className="flex gap-2">
+                      <span className="font-display text-foreground">
+                        {((getPrizePool() * pct) / 100).toLocaleString()} $
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

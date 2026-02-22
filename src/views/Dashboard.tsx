@@ -1,6 +1,8 @@
+import { getTime, format } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 import { useTournamentStore } from "@/stores/tournament.store";
 import { CartoonCard } from "@/components/CartoonCard";
-import { Crown, Users, Layers, Coins, X } from "lucide-react";
+import { Crown, Users, Layers, Coins, X, Trophy, Landmark } from "lucide-react";
 import pokerScene from "@/assets/tilted-director.png";
 
 const formatTime = (s: number) => {
@@ -8,6 +10,8 @@ const formatTime = (s: number) => {
   const sec = s % 60;
   return `${m.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
 };
+const formatLocalTimeShort = (d: Date) => format(d, "HH:mm");
+const formatTimeLong = (d: Date) => formatInTimeZone(d, "UTC", "HH:mm:ss");
 
 export const DashboardView = () => {
   const {
@@ -16,9 +20,11 @@ export const DashboardView = () => {
     currentLevel,
     blindLevels,
     timeRemaining,
-    isRunning,
     announcement,
+    payoutStructure,
+    isRunning,
     setAnnouncement,
+    getPrizePool,
   } = useTournamentStore();
 
   const activePlayers = players.filter((p) => p.status === "active").length;
@@ -27,6 +33,9 @@ export const DashboardView = () => {
   ).length;
   const blind = blindLevels[currentLevel];
   const totalChips = players.reduce((sum, p) => sum + p.chips, 0);
+  const averageChips = totalChips / activePlayers || 0;
+  const averageToBigBlind = averageChips / blind.bigBlind;
+  const ITMPlayers = payoutStructure.length;
 
   return (
     <div className="space-y-4 pb-4">
@@ -35,13 +44,13 @@ export const DashboardView = () => {
         <img
           src={pokerScene}
           alt="Poker dealer"
-          className="w-28 h-28 mx-auto -mb-2 drop-shadow-lg float-animation"
+          className="w-48 mx-auto -mb-6 drop-shadow-lg float-animation"
         />
-        <h1 className="text-4xl font-display text-primary text-outline drop-shadow-lg">
+        <h1 className="text-5xl font-display text-primary text-outline drop-shadow-lg">
           {tournamentName}
         </h1>
         <p className="text-muted-foreground font-body text-sm mt-1">
-          🃏 Tournament Director 🃏
+          🃏 The Tilted Tournament Director 🃏
         </p>
       </div>
 
@@ -63,41 +72,74 @@ export const DashboardView = () => {
       )}
 
       {/* Current Blinds - Hero Card */}
-      <CartoonCard variant="gold" className="tilt-right text-center">
-        <p className="text-xs text-muted-foreground font-display tracking-widest uppercase">
-          Level {blind.level}
-        </p>
-        <div className="text-3xl font-display text-primary text-outline my-1">
-          {blind.smallBlind.toLocaleString()} /{" "}
-          {blind.bigBlind.toLocaleString()}
-        </div>
-        {blind.ante > 0 && (
-          <p className="text-sm text-secondary font-display">
-            Ante: {blind.ante}
+      <CartoonCard
+        variant="gold"
+        className="tilt-right text-center flex justify-evenly items-center w-full"
+      >
+        <div className="font-display text-primary text-outline w-1/3">
+          <p className="text-xl text-foreground/90 font-display tracking-widest uppercase">
+            Level {blind.level}
           </p>
-        )}
-        <div
-          className={`text-2xl font-display mt-2 ${isRunning ? "text-secondary pulse-glow inline-block rounded-lg px-3" : "text-foreground"}`}
-        >
-          ⏱ {formatTime(timeRemaining)}
+          <p className="text-3xl">
+            {blind.smallBlind.toLocaleString()} /{" "}
+            {blind.bigBlind.toLocaleString()}
+          </p>
+
+          {blind.ante > 0 && (
+            <p className="text-xl text-secondary/80 font-display">
+              Ante: {blind.ante}
+            </p>
+          )}
+        </div>
+        <div className="w-1/3">
+          <div className="text-6xl font-display text-foreground">
+            {formatTime(timeRemaining)}
+          </div>
+        </div>
+        {/* <div className="w-1/3"></div> */}
+        <div className="text-3xl font-display text-primary text-outline w-1/3">
+          <div className="flex items-center justify-center gap-2 text-xl">
+            <Users size={20} className="text-primary" />
+            <span className="text-foreground/90 font-display">Players</span>
+          </div>
+          <p className="text-4xl font-display text-foreground/90 mt-1">
+            {activePlayers}
+            <span className="text-xl text-muted-foreground">
+              /{players.length}
+            </span>
+          </p>
         </div>
       </CartoonCard>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-3">
-        <CartoonCard className="tilt-left">
-          <div className="flex items-center gap-2">
-            <Users size={20} className="text-primary" />
-            <span className="text-xs text-muted-foreground font-display">
-              Players
-            </span>
+        <CartoonCard className="tilt-left flex">
+          <div className="w-1/2">
+            <div className="flex items-center gap-2">
+              <Landmark size={20} className="text-primary" />
+              <span className="text-xs text-muted-foreground font-display">
+                Prize pool
+              </span>
+            </div>
+            <p className="text-2xl font-display text-foreground mt-1 ms-1">
+              {getPrizePool().toLocaleString()}
+              <span className="text-sm text-muted-foreground ms-1">$</span>
+            </p>
           </div>
-          <p className="text-2xl font-display text-foreground mt-1">
-            {activePlayers}
-            <span className="text-sm text-muted-foreground">
-              /{players.length}
-            </span>
-          </p>
+          <div className="w-1/2 flex flex-col items-end">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground font-display">
+                Top paid
+              </span>
+              <Trophy size={20} className="text-primary" />
+            </div>
+            <p className="text-2xl font-display text-foreground mt-1 me-1">
+              {ITMPlayers}
+              <span className="text-lg text-muted-foreground">
+                /{players.length}
+              </span>
+            </p>
+          </div>
         </CartoonCard>
 
         <CartoonCard className="tilt-right">
@@ -131,28 +173,64 @@ export const DashboardView = () => {
           <div className="flex items-center gap-2">
             <Coins size={20} className="text-primary" />
             <span className="text-xs text-muted-foreground font-display">
-              Total Chips
+              Average Chips
             </span>
           </div>
-          <p className="text-xl font-display text-foreground mt-1">
-            {totalChips.toLocaleString()}
+          <p className="text-xl font-display text-foreground mt-1 ms-1">
+            {averageChips.toLocaleString(undefined, {
+              maximumFractionDigits: 0,
+            })}
+            <span className="text-sm text-muted-foreground">
+              /
+              {averageToBigBlind.toLocaleString(undefined, {
+                maximumFractionDigits: 0,
+              })}
+              BB
+            </span>
           </p>
         </CartoonCard>
       </div>
 
       {/* Next Blinds Preview */}
       {currentLevel < blindLevels.length - 1 && (
-        <CartoonCard variant="default" className="opacity-75">
-          <p className="text-xs text-muted-foreground font-display tracking-widest">
-            NEXT UP
-          </p>
-          <p className="text-lg font-display text-foreground">
-            Level {blindLevels[currentLevel + 1].level}:{" "}
-            {blindLevels[currentLevel + 1].smallBlind.toLocaleString()} /{" "}
-            {blindLevels[currentLevel + 1].bigBlind.toLocaleString()}
-            {blindLevels[currentLevel + 1].ante > 0 &&
-              ` (ante ${blindLevels[currentLevel + 1].ante})`}
-          </p>
+        <CartoonCard variant="default" className="opacity-75 flex">
+          <div className="w-1/3">
+            <p className="text-xs text-muted-foreground font-display tracking-widest">
+              NEXT UP:
+              <span className="text-destructive ms-1">
+                {formatTime(blindLevels[currentLevel + 1].duration * 60)}
+              </span>
+            </p>
+            <p className="text-lg font-display text-foreground">
+              Level {blindLevels[currentLevel + 1].level}:{" "}
+              {blindLevels[currentLevel + 1].smallBlind.toLocaleString()} /{" "}
+              {blindLevels[currentLevel + 1].bigBlind.toLocaleString()}
+              {blindLevels[currentLevel + 1].ante > 0 &&
+                ` (ante ${blindLevels[currentLevel + 1].ante})`}
+            </p>
+          </div>
+          <div className="w-1/3 flex flex-col items-center">
+            <p className="text-xs text-muted-foreground font-display tracking-widest">
+              Total time
+            </p>
+            <p className="text-lg font-display text-foreground">
+              {isRunning
+                ? formatTimeLong(
+                    new Date(
+                      getTime(new Date()) - blindLevels[0].startTimeInMs,
+                    ),
+                  )
+                : "Not started"}
+            </p>
+          </div>
+          <div className="w-1/3 flex flex-col items-end">
+            <p className="text-xs text-muted-foreground font-display tracking-widest">
+              Current time
+            </p>
+            <p className="text-lg font-display text-foreground">
+              {formatLocalTimeShort(new Date())}
+            </p>
+          </div>
         </CartoonCard>
       )}
     </div>

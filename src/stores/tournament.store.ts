@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { getTime } from "date-fns";
 import { generateId } from "@/lib/utils";
 import type { Player, BlindLevel } from "@/domain/types/tournament.types";
 import CLASSIC from "@/domain/structures/classic.json";
@@ -7,18 +8,23 @@ import CLASSIC from "@/domain/structures/classic.json";
 type TournamentStore = {
   players: Player[];
   blindLevels: BlindLevel[];
+  buyIn: number;
   currentLevel: number;
   timeRemaining: number;
   isRunning: boolean;
   tournamentName: string;
   startingChips: number;
   announcement: string;
-  addonAmount: number;
+  addOnChips: number;
+  addOn: number;
+  payoutStructure: number[];
 
   // setters
   setTournamentName: (name: string) => void;
   setStartingChips: (chips: number) => void;
   setAnnouncement: (msg: string) => void;
+  setPayoutStructure: (structure: number[]) => void;
+  setLevel: (level: number) => void;
 
   // actions
   addPlayer: (name: string) => void;
@@ -36,6 +42,9 @@ type TournamentStore = {
 
   startTimerLoop: () => void;
   stopTimerLoop: () => void;
+
+  // calculated information
+  getPrizePool: () => number;
 };
 
 let interval: ReturnType<typeof setInterval> | null = null;
@@ -48,17 +57,20 @@ export const useTournamentStore = create<
     (set, get) => ({
       players: [],
       blindLevels: CLASSIC,
+      buyIn: 50,
       currentLevel: 0,
       timeRemaining: CLASSIC[0].duration * 60,
       isRunning: false,
       tournamentName: "CRAZY POKER NIGHT",
       startingChips: 10000,
       announcement: "",
-      addonAmount: 5000,
-
+      addOnChips: 5000,
+      addOn: 10,
+      payoutStructure: [50, 30, 20],
       setTournamentName: (name) => set({ tournamentName: name }),
       setStartingChips: (chips) => set({ startingChips: chips }),
       setAnnouncement: (msg) => set({ announcement: msg }),
+      setPayoutStructure: (structure) => set({ payoutStructure: structure }),
 
       addPlayer: (name) =>
         set((state) => ({
@@ -72,6 +84,7 @@ export const useTournamentStore = create<
               seat: state.players.length + 1,
               rebuyCount: 0,
               hasAddon: false,
+              buyIn: state.buyIn,
             },
           ],
         })),
@@ -112,7 +125,7 @@ export const useTournamentStore = create<
             p.id === id
               ? {
                   ...p,
-                  chips: p.chips + s.addonAmount,
+                  chips: p.chips + s.addOnChips,
                   hasAddon: true,
                 }
               : p,
@@ -126,6 +139,17 @@ export const useTournamentStore = create<
 
       toggleTimer: () => {
         const running = get().isRunning;
+        const currentLevel = get().currentLevel;
+        const blindLevels = get().blindLevels;
+
+        if (!running && currentLevel === 0) {
+          const updatedBlindLevels = [...blindLevels];
+          updatedBlindLevels[0] = {
+            ...updatedBlindLevels[0],
+            startTimeInMs: getTime(new Date()),
+          };
+          set({ blindLevels: updatedBlindLevels });
+        }
         set({ isRunning: !running });
         if (!running) get().startTimerLoop();
         else get().stopTimerLoop();
@@ -182,6 +206,17 @@ export const useTournamentStore = create<
           interval = null;
         }
       },
+
+      getPrizePool: () => {
+        const { players, buyIn } = get();
+        const prizePool = players.reduce(
+          (sum, p) =>
+            sum + buyIn + p.rebuyCount * buyIn + (p.hasAddon ? get().addOn : 0),
+          0,
+        );
+        console.log("Calculated prize pool:", prizePool);
+        return prizePool;
+      },
     }),
     {
       name: "tournament-storage",
@@ -193,6 +228,9 @@ export const useTournamentStore = create<
         isRunning: state.isRunning,
         startingChips: state.startingChips,
         announcement: state.announcement,
+        buyIn: state.buyIn,
+        addOnChips: state.addOnChips,
+        addOn: state.addOn,
       }),
     },
   ),
