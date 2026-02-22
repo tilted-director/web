@@ -34,7 +34,7 @@ export const DashboardView = () => {
         <img
           src={pokerScene}
           alt="Poker dealer"
-          className="w-32 h-32 mx-auto -mb-2 drop-shadow-lg float-animation"
+          className="w-48 mx-auto -mb-6 drop-shadow-lg float-animation"
         />
         <h1 className="text-5xl font-display text-primary text-outline drop-shadow-lg">
           {tournamentName}
