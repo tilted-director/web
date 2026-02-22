@@ -22,7 +22,7 @@ export const DashboardView = () => {
     timeRemaining,
     announcement,
     payoutStructure,
-    isRunning,
+    tournamentStartTimeInMs,
     setAnnouncement,
     getPrizePool,
   } = useTournamentStore();
@@ -214,11 +214,9 @@ export const DashboardView = () => {
               Total time
             </p>
             <p className="text-lg font-display text-foreground">
-              {isRunning
+              {tournamentStartTimeInMs
                 ? formatTimeLong(
-                    new Date(
-                      getTime(new Date()) - blindLevels[0].startTimeInMs,
-                    ),
+                    new Date(getTime(new Date()) - tournamentStartTimeInMs),
                   )
                 : "Not started"}
             </p>

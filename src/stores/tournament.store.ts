@@ -18,13 +18,13 @@ type TournamentStore = {
   addOnChips: number;
   addOn: number;
   payoutStructure: number[];
+  tournamentStartTimeInMs: number | null;
 
   // setters
   setTournamentName: (name: string) => void;
   setStartingChips: (chips: number) => void;
   setAnnouncement: (msg: string) => void;
   setPayoutStructure: (structure: number[]) => void;
-  setLevel: (level: number) => void;
 
   // actions
   addPlayer: (name: string) => void;
@@ -67,6 +67,7 @@ export const useTournamentStore = create<
       addOnChips: 5000,
       addOn: 10,
       payoutStructure: [50, 30, 20],
+      tournamentStartTimeInMs: null,
       setTournamentName: (name) => set({ tournamentName: name }),
       setStartingChips: (chips) => set({ startingChips: chips }),
       setAnnouncement: (msg) => set({ announcement: msg }),
@@ -139,17 +140,12 @@ export const useTournamentStore = create<
 
       toggleTimer: () => {
         const running = get().isRunning;
-        const currentLevel = get().currentLevel;
-        const blindLevels = get().blindLevels;
+        const tournamentStartTimeInMs = get().tournamentStartTimeInMs;
 
-        if (!running && currentLevel === 0) {
-          const updatedBlindLevels = [...blindLevels];
-          updatedBlindLevels[0] = {
-            ...updatedBlindLevels[0],
-            startTimeInMs: getTime(new Date()),
-          };
-          set({ blindLevels: updatedBlindLevels });
+        if (!running && tournamentStartTimeInMs === null) {
+          set({ tournamentStartTimeInMs: getTime(new Date()) });
         }
+
         set({ isRunning: !running });
         if (!running) get().startTimerLoop();
         else get().stopTimerLoop();
@@ -231,6 +227,7 @@ export const useTournamentStore = create<
         buyIn: state.buyIn,
         addOnChips: state.addOnChips,
         addOn: state.addOn,
+        tournamentStartTimeInMs: state.tournamentStartTimeInMs,
       }),
     },
   ),
