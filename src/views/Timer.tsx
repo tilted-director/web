@@ -9,6 +9,14 @@ const formatTime = (s: number) => {
   return `${m.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
 };
 
+/**
+ * TODO:
+ * Revoir la logique de timer pour se baser sur le timestamp de départ du tournoi + durée des niveaux, plutôt que de faire du counting down.
+ * Ça permettrait de gérer les pauses plus proprement, et d'éviter les problèmes de synchro du timer si jamais l'onglet est mis en arrière plan ou que le navigateur met en pause les timers.
+ * En gros, maintenant qu'on stock le timestamp de départ du tournoi, on peut calculer le niveau courant (peu poser soucis au changement de level) et le temps restant à partir de ça.
+ * Quand on met en pause, on stocke le timestamp de pause, et quand on reprend, on ajuste le timestamp de départ en fonction de la durée de la pause.
+ */
+
 export const TimerView = () => {
   const {
     currentLevel,

@@ -18,7 +18,8 @@ type TournamentStore = {
   addOnChips: number;
   addOn: number;
   payoutStructure: (number | null)[];
-  tournamentStartTimeInMs: number | null;
+  tournamentStartsAt: number | null;
+  tournamentPausedAt: number | null;
 
   // setters
   setTournamentName: (name: string) => void;
@@ -69,7 +70,9 @@ export const useTournamentStore = create<
       addOnChips: 5000,
       addOn: 10,
       payoutStructure: [50, 30, 20],
-      tournamentStartTimeInMs: null,
+      tournamentStartsAt: null,
+      tournamentPausedAt: null,
+
       setTournamentName: (name) => set({ tournamentName: name }),
       setBuyIn: (amount) => set({ buyIn: amount }),
       setStartingChips: (chips) =>
@@ -155,13 +158,27 @@ export const useTournamentStore = create<
 
       toggleTimer: () => {
         const running = get().isRunning;
-        const tournamentStartTimeInMs = get().tournamentStartTimeInMs;
+        const tournamentStartsAt = get().tournamentStartsAt;
+        const tournamentPausedAt = get().tournamentPausedAt;
 
-        if (!running && tournamentStartTimeInMs === null) {
-          set({ tournamentStartTimeInMs: getTime(new Date()) });
+        if (!running && tournamentStartsAt === null) {
+          set({ tournamentStartsAt: getTime(new Date()) });
+        }
+
+        if (running && tournamentStartsAt) {
+          set({ tournamentPausedAt: getTime(new Date()) });
+        }
+
+        if (!running && tournamentStartsAt && tournamentPausedAt) {
+          set({
+            tournamentStartsAt:
+              tournamentStartsAt + (getTime(new Date()) - tournamentPausedAt),
+            tournamentPausedAt: null,
+          });
         }
 
         set({ isRunning: !running });
+
         if (!running) get().startTimerLoop();
         else get().stopTimerLoop();
       },
@@ -171,10 +188,16 @@ export const useTournamentStore = create<
         set({
           timeRemaining: blindLevels[currentLevel].duration * 60,
           isRunning: false,
+          tournamentStartsAt: null,
+          tournamentPausedAt: null,
         });
         get().stopTimerLoop();
       },
 
+      /**
+       * Incompatible avec le fait de se baser sur le time de départ du tournoi,
+       * à revoir si on veut garder cette feature d'avance par niveau
+       */
       nextLevel: () => {
         const { currentLevel, blindLevels } = get();
         const next = Math.min(currentLevel + 1, blindLevels.length - 1);
@@ -184,6 +207,7 @@ export const useTournamentStore = create<
         });
       },
 
+      // Même remarque que pour nextLevel
       prevLevel: () => {
         const { currentLevel, blindLevels } = get();
         const prev = Math.max(currentLevel - 1, 0);
@@ -235,14 +259,14 @@ export const useTournamentStore = create<
         players: state.players,
         tournamentName: state.tournamentName,
         currentLevel: state.currentLevel,
-        timeRemaining: state.timeRemaining,
         isRunning: state.isRunning,
         startingChips: state.startingChips,
         announcement: state.announcement,
         buyIn: state.buyIn,
         addOnChips: state.addOnChips,
         addOn: state.addOn,
-        tournamentStartTimeInMs: state.tournamentStartTimeInMs,
+        tournamentStartsAt: state.tournamentStartsAt,
+        tournamentPausedAt: state.tournamentPausedAt,
       }),
     },
   ),
