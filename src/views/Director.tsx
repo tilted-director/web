@@ -21,6 +21,8 @@ export const DirectorView = () => {
   const {
     tournamentName,
     setTournamentName,
+    buyIn,
+    setBuyIn,
     startingChips,
     setStartingChips,
     payoutStructure,
@@ -45,7 +47,10 @@ export const DirectorView = () => {
   const blind = blindLevels[currentLevel];
   const bigBlindsAvg =
     blind.bigBlind > 0 ? Math.round(avgStack / blind.bigBlind) : 0;
-  const totalPayout = payoutStructure.reduce((a, b) => a + b, 0);
+  const totalPayout = payoutStructure.reduce(
+    (a, b) => Number(a) + Number(b),
+    0,
+  );
 
   const [inputText, setInputText] = useState("");
 
@@ -59,20 +64,17 @@ export const DirectorView = () => {
   };
 
   const removePlace = () => {
-    if (payoutStructure.length > 1) {
-      setPayoutStructure(payoutStructure.slice(0, -1));
-    }
+    setPayoutStructure(payoutStructure.slice(0, -1));
   };
 
   const addPlace = () => {
-    if (payoutStructure.length < players.length) {
-      setPayoutStructure([...payoutStructure, 0]);
-    }
+    setPayoutStructure([...payoutStructure, 0]);
   };
 
-  const updatePayout = (index: number, value: number) => {
+  const updatePayout = (index: number, value: string) => {
+    if (Number(value) < 0) return;
     const newStructure = [...payoutStructure];
-    newStructure[index] = value;
+    newStructure[index] = value ? Number(value) : null;
     setPayoutStructure(newStructure);
   };
 
@@ -101,6 +103,17 @@ export const DirectorView = () => {
               type="text"
               value={tournamentName}
               onChange={(e) => setTournamentName(e.target.value)}
+              className="w-full bg-muted text-foreground font-body px-4 py-2 rounded-xl border-2 border-border focus:border-primary outline-none mt-1"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-display text-muted-foreground">
+              BUY-IN ($)
+            </label>
+            <input
+              type="number"
+              value={buyIn}
+              onChange={(e) => setBuyIn(Number(e.target.value))}
               className="w-full bg-muted text-foreground font-body px-4 py-2 rounded-xl border-2 border-border focus:border-primary outline-none mt-1"
             />
           </div>
@@ -255,8 +268,9 @@ export const DirectorView = () => {
                   </div>
                   <input
                     type="number"
-                    value={pct}
-                    onChange={(e) => updatePayout(i, Number(e.target.value))}
+                    value={pct ?? ""}
+                    onFocus={(e) => e.currentTarget.select()}
+                    onChange={(e) => updatePayout(i, e.target.value)}
                     className="flex-1 bg-muted text-foreground font-display text-center px-3 py-2 rounded-xl border-2 border-border focus:border-primary outline-none"
                   />
                   <span className="font-display text-muted-foreground">%</span>
@@ -277,7 +291,7 @@ export const DirectorView = () => {
             </div>
 
             {/* Summary */}
-            {totalPayout === 100 && players.length > 0 && (
+            {totalPayout === 100 ? (
               <div className="bg-muted/50 rounded-xl p-3 space-y-1">
                 <p className="font-display text-xs text-muted-foreground tracking-widest">
                   SUMMARY
@@ -293,11 +307,23 @@ export const DirectorView = () => {
                     </span>
                     <div className="flex gap-2">
                       <span className="font-display text-foreground">
-                        {((getPrizePool() * pct) / 100).toLocaleString()} $
+                        {((getPrizePool() * (pct ?? 0)) / 100).toLocaleString()}{" "}
+                        $
                       </span>
                     </div>
                   </div>
                 ))}
+              </div>
+            ) : (
+              <div className="text-center text-sm text-muted-foreground">
+                Please adjust the percentages so they add up to 100% to see the
+                payout summary.
+              </div>
+            )}
+            {players.length < payoutStructure.length && (
+              <div className="text-sm text-destructive">
+                ⚠ There are more payout places than players! Consider reducing
+                the number of places or adding more players.
               </div>
             )}
           </div>

@@ -17,14 +17,15 @@ type TournamentStore = {
   announcement: string;
   addOnChips: number;
   addOn: number;
-  payoutStructure: number[];
+  payoutStructure: (number | null)[];
   tournamentStartTimeInMs: number | null;
 
   // setters
   setTournamentName: (name: string) => void;
+  setBuyIn: (amount: number) => void;
   setStartingChips: (chips: number) => void;
   setAnnouncement: (msg: string) => void;
-  setPayoutStructure: (structure: number[]) => void;
+  setPayoutStructure: (structure: (number | null)[]) => void;
 
   // actions
   addPlayer: (name: string) => void;
@@ -57,7 +58,7 @@ export const useTournamentStore = create<
     (set, get) => ({
       players: [],
       blindLevels: CLASSIC,
-      buyIn: 50,
+      buyIn: 20,
       currentLevel: 0,
       timeRemaining: CLASSIC[0].duration * 60,
       isRunning: false,
@@ -69,6 +70,7 @@ export const useTournamentStore = create<
       payoutStructure: [50, 30, 20],
       tournamentStartTimeInMs: null,
       setTournamentName: (name) => set({ tournamentName: name }),
+      setBuyIn: (amount) => set({ buyIn: amount }),
       setStartingChips: (chips) => set({ startingChips: chips }),
       setAnnouncement: (msg) => set({ announcement: msg }),
       setPayoutStructure: (structure) => set({ payoutStructure: structure }),
