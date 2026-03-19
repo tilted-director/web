@@ -35,6 +35,7 @@ type TournamentStore = {
   rebuy: (id: string) => void;
   buyAddon: (id: string) => void;
   removePlayer: (id: string) => void;
+  randomizeSeats: () => void;
 
   toggleTimer: () => void;
   resetTimer: () => void;
@@ -143,6 +144,14 @@ export const useTournamentStore = create<
         set((s) => ({
           players: s.players.filter((p) => p.id !== id),
         })),
+
+      randomizeSeats: () =>
+        set((s) => {
+          const shuffled = [...s.players].sort(() => Math.random() - 0.5);
+          return {
+            players: shuffled.map((p, index) => ({ ...p, seat: index + 1 })),
+          };
+        }),
 
       toggleTimer: () => {
         const running = get().isRunning;
