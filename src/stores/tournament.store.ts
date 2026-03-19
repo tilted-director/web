@@ -71,7 +71,11 @@ export const useTournamentStore = create<
       tournamentStartTimeInMs: null,
       setTournamentName: (name) => set({ tournamentName: name }),
       setBuyIn: (amount) => set({ buyIn: amount }),
-      setStartingChips: (chips) => set({ startingChips: chips }),
+      setStartingChips: (chips) =>
+        set((state) => ({
+          startingChips: chips,
+          players: state.players.map((p) => ({ ...p, chips: chips })),
+        })),
       setAnnouncement: (msg) => set({ announcement: msg }),
       setPayoutStructure: (structure) => set({ payoutStructure: structure }),
 
