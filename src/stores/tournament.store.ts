@@ -3,6 +3,11 @@ import { persist } from "zustand/middleware";
 import { getTime } from "date-fns";
 import { generateId } from "@/lib/utils";
 import type { Player, BlindLevel } from "@/domain/types/tournament.types";
+import {
+  deriveTimerState,
+  getEffectiveElapsedMs,
+  getElapsedOffsetForTargetLevel,
+} from "@/domain/timer/engine";
 import CLASSIC from "@/domain/structures/classic.json";
 
 type TournamentStore = {
@@ -11,6 +16,7 @@ type TournamentStore = {
   buyIn: number;
   currentLevel: number;
   timeRemaining: number;
+  elapsedTotalSeconds: number;
   isRunning: boolean;
   tournamentName: string;
   startingChips: number;
@@ -20,6 +26,8 @@ type TournamentStore = {
   payoutStructure: (number | null)[];
   tournamentStartsAt: number | null;
   tournamentPausedAt: number | null;
+  totalPausedMs: number;
+  elapsedOffsetMs: number;
 
   // setters
   setTournamentName: (name: string) => void;
@@ -42,6 +50,7 @@ type TournamentStore = {
   resetTimer: () => void;
   nextLevel: () => void;
   prevLevel: () => void;
+  syncTimerState: () => void;
 
   startTimerLoop: () => void;
   stopTimerLoop: () => void;
@@ -63,6 +72,7 @@ export const useTournamentStore = create<
       buyIn: 20,
       currentLevel: 0,
       timeRemaining: CLASSIC[0].duration * 60,
+      elapsedTotalSeconds: 0,
       isRunning: false,
       tournamentName: "The tilted tournament",
       startingChips: 10000,
@@ -72,6 +82,8 @@ export const useTournamentStore = create<
       payoutStructure: [50, 30, 20],
       tournamentStartsAt: null,
       tournamentPausedAt: null,
+      totalPausedMs: 0,
+      elapsedOffsetMs: 0,
 
       setTournamentName: (name) => set({ tournamentName: name }),
       setBuyIn: (amount) => set({ buyIn: amount }),
@@ -157,63 +169,134 @@ export const useTournamentStore = create<
         }),
 
       toggleTimer: () => {
-        const running = get().isRunning;
-        const tournamentStartsAt = get().tournamentStartsAt;
-        const tournamentPausedAt = get().tournamentPausedAt;
+        const now = getTime(new Date());
+        const {
+          isRunning,
+          tournamentStartsAt,
+          tournamentPausedAt,
+          totalPausedMs,
+        } = get();
 
-        if (!running && tournamentStartsAt === null) {
-          set({ tournamentStartsAt: getTime(new Date()) });
+        if (!isRunning) {
+          if (tournamentStartsAt === null) {
+            set({
+              tournamentStartsAt: now,
+              tournamentPausedAt: null,
+              isRunning: true,
+            });
+          } else if (tournamentPausedAt !== null) {
+            set({
+              tournamentPausedAt: null,
+              totalPausedMs:
+                totalPausedMs + Math.max(now - tournamentPausedAt, 0),
+              isRunning: true,
+            });
+          } else {
+            set({ isRunning: true });
+          }
+
+          get().syncTimerState();
+          get().startTimerLoop();
+          return;
         }
 
-        if (running && tournamentStartsAt) {
-          set({ tournamentPausedAt: getTime(new Date()) });
-        }
-
-        if (!running && tournamentStartsAt && tournamentPausedAt) {
-          set({
-            tournamentStartsAt:
-              tournamentStartsAt + (getTime(new Date()) - tournamentPausedAt),
-            tournamentPausedAt: null,
-          });
-        }
-
-        set({ isRunning: !running });
-
-        if (!running) get().startTimerLoop();
-        else get().stopTimerLoop();
-      },
-
-      resetTimer: () => {
-        const { blindLevels, currentLevel } = get();
-        set({
-          timeRemaining: blindLevels[currentLevel].duration * 60,
-          isRunning: false,
-          tournamentStartsAt: null,
-          tournamentPausedAt: null,
-        });
+        set({ isRunning: false, tournamentPausedAt: now });
+        get().syncTimerState();
         get().stopTimerLoop();
       },
 
-      /**
-       * Incompatible avec le fait de se baser sur le time de départ du tournoi,
-       * à revoir si on veut garder cette feature d'avance par niveau
-       */
-      nextLevel: () => {
-        const { currentLevel, blindLevels } = get();
-        const next = Math.min(currentLevel + 1, blindLevels.length - 1);
+      resetTimer: () => {
+        const { blindLevels } = get();
         set({
-          currentLevel: next,
-          timeRemaining: blindLevels[next].duration * 60,
+          currentLevel: 0,
+          timeRemaining: blindLevels[0].duration * 60,
+          elapsedTotalSeconds: 0,
+          isRunning: false,
+          tournamentStartsAt: null,
+          tournamentPausedAt: null,
+          totalPausedMs: 0,
+          elapsedOffsetMs: 0,
         });
+        get().stopTimerLoop();
+      },
+      nextLevel: () => {
+        const now = getTime(new Date());
+        const {
+          blindLevels,
+          tournamentStartsAt,
+          tournamentPausedAt,
+          totalPausedMs,
+          elapsedOffsetMs,
+          currentLevel,
+        } = get();
+        const targetLevel = currentLevel + 1;
+
+        set({
+          elapsedOffsetMs: getElapsedOffsetForTargetLevel(
+            now,
+            targetLevel,
+            blindLevels,
+            {
+              startedAtMs: tournamentStartsAt,
+              pausedAtMs: tournamentPausedAt,
+              totalPausedMs,
+              elapsedOffsetMs,
+            },
+          ),
+        });
+        get().syncTimerState();
+      },
+      prevLevel: () => {
+        const now = getTime(new Date());
+        const {
+          blindLevels,
+          tournamentStartsAt,
+          tournamentPausedAt,
+          totalPausedMs,
+          elapsedOffsetMs,
+          currentLevel,
+        } = get();
+        const targetLevel = currentLevel - 1;
+
+        set({
+          elapsedOffsetMs: getElapsedOffsetForTargetLevel(
+            now,
+            targetLevel,
+            blindLevels,
+            {
+              startedAtMs: tournamentStartsAt,
+              pausedAtMs: tournamentPausedAt,
+              totalPausedMs,
+              elapsedOffsetMs,
+            },
+          ),
+        });
+        get().syncTimerState();
       },
 
-      // Même remarque que pour nextLevel
-      prevLevel: () => {
-        const { currentLevel, blindLevels } = get();
-        const prev = Math.max(currentLevel - 1, 0);
+      syncTimerState: () => {
+        const now = getTime(new Date());
+        const {
+          blindLevels,
+          tournamentStartsAt,
+          tournamentPausedAt,
+          totalPausedMs,
+          elapsedOffsetMs,
+        } = get();
+
+        const effectiveElapsedMs = getEffectiveElapsedMs(now, {
+          startedAtMs: tournamentStartsAt,
+          pausedAtMs: tournamentPausedAt,
+          totalPausedMs,
+          elapsedOffsetMs,
+        });
+        const elapsedSeconds = Math.floor(effectiveElapsedMs / 1000);
+        const derived = deriveTimerState(elapsedSeconds, blindLevels);
+
         set({
-          currentLevel: prev,
-          timeRemaining: blindLevels[prev].duration * 60,
+          currentLevel: derived.currentLevel,
+          timeRemaining: derived.timeRemaining,
+          elapsedTotalSeconds: derived.elapsedTotalSeconds,
         });
       },
 
@@ -221,17 +304,7 @@ export const useTournamentStore = create<
         if (interval) return;
 
         interval = setInterval(() => {
-          const { timeRemaining, currentLevel, blindLevels } = get();
-
-          if (timeRemaining <= 1) {
-            const next = Math.min(currentLevel + 1, blindLevels.length - 1);
-            set({
-              currentLevel: next,
-              timeRemaining: blindLevels[next].duration * 60,
-            });
-          } else {
-            set({ timeRemaining: timeRemaining - 1 });
-          }
+          get().syncTimerState();
         }, 1000);
       },
 
@@ -267,7 +340,32 @@ export const useTournamentStore = create<
         addOn: state.addOn,
         tournamentStartsAt: state.tournamentStartsAt,
         tournamentPausedAt: state.tournamentPausedAt,
+        totalPausedMs: state.totalPausedMs,
+        elapsedOffsetMs: state.elapsedOffsetMs,
       }),
+      onRehydrateStorage: () => (state) => {
+        if (!state) return;
+
+        state.syncTimerState();
+        if (state.isRunning) {
+          state.startTimerLoop();
+        } else {
+          state.stopTimerLoop();
+        }
+      },
     },
   ),
 );
+
+if (typeof window !== "undefined") {
+  window.addEventListener("storage", (event) => {
+    if (event.key !== "tournament-storage") return;
+
+    useTournamentStore.persist.rehydrate();
+    const state = useTournamentStore.getState();
+    state.syncTimerState();
+
+    if (state.isRunning) state.startTimerLoop();
+    else state.stopTimerLoop();
+  });
+}
