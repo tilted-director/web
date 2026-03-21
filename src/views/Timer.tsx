@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useTournamentStore } from "@/stores/tournament.store";
 import { CartoonCard } from "@/components/CartoonCard";
 import { CartoonButton } from "@/components/CartoonButton";
@@ -19,7 +20,21 @@ export const TimerView = () => {
     resetTimer,
     nextLevel,
     prevLevel,
+    syncTimerState,
   } = useTournamentStore();
+
+  useEffect(() => {
+    const sync = () => syncTimerState();
+
+    sync();
+    document.addEventListener("visibilitychange", sync);
+    window.addEventListener("pageshow", sync);
+
+    return () => {
+      document.removeEventListener("visibilitychange", sync);
+      window.removeEventListener("pageshow", sync);
+    };
+  }, [syncTimerState]);
 
   const blind = blindLevels[currentLevel];
   const progress = 1 - timeRemaining / (blind.duration * 60);
