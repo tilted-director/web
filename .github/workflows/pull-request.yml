@@ -24,3 +24,7 @@ jobs:
       - name: 👮🏻‍♂️ Run lint
         id: lint
         run: pnpm lint:ci
+
+      - name: 🧪 Run unit tests
+        id: unit-tests
+        run: pnpm test:unit

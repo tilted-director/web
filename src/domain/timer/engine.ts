@@ -6,7 +6,7 @@ import type { BlindLevel } from "@/domain/types/tournament.types";
  * This structure is the persistable source of truth used to reconstruct
  * timer state after refresh, pause/resume, or tab visibility changes.
  */
-type TimerTimeline = {
+export type TimerTimeline = {
   startedAtMs: number | null;
   pausedAtMs: number | null;
   totalPausedMs: number;
@@ -16,7 +16,7 @@ type TimerTimeline = {
 /**
  * Derived timer state ready to display in the UI.
  */
-type DerivedTimerState = {
+export type DerivedTimerState = {
   currentLevel: number;
   timeRemaining: number;
   elapsedTotalSeconds: number;
@@ -34,7 +34,7 @@ const clamp = (value: number, min: number, max: number) =>
  * @param blindLevels Tournament blind structure.
  * @returns Level durations in seconds.
  */
-const getDurationByLevelInSeconds = (blindLevels: BlindLevel[]) =>
+export const getDurationByLevelInSeconds = (blindLevels: BlindLevel[]) =>
   blindLevels.map((level) => Math.max(level.duration * 60, 1));
 
 /**
@@ -45,13 +45,13 @@ const getDurationByLevelInSeconds = (blindLevels: BlindLevel[]) =>
  * @param blindLevels Tournament blind structure.
  * @returns Per-level durations and cumulative second boundaries.
  */
-const getCumulativeDurationsInSeconds = (blindLevels: BlindLevel[]) => {
+export const getCumulativeDurationsInSeconds = (blindLevels: BlindLevel[]) => {
   const durations = getDurationByLevelInSeconds(blindLevels);
   const cumulative: number[] = [0];
 
-  for (const duration of durations) {
-    cumulative.push(cumulative[cumulative.length - 1] + duration);
-  }
+  durations.forEach((d) =>
+    cumulative.push(cumulative[cumulative.length - 1] + d),
+  );
 
   return { durations, cumulative };
 };
@@ -67,7 +67,7 @@ const getCumulativeDurationsInSeconds = (blindLevels: BlindLevel[]) => {
  * @param timeline Canonical tournament timeline.
  * @returns Raw elapsed milliseconds, clamped to 0.
  */
-const getBaseElapsedMs = (nowMs: number, timeline: TimerTimeline) => {
+export const getBaseElapsedMs = (nowMs: number, timeline: TimerTimeline) => {
   if (timeline.startedAtMs === null) return 0;
 
   const ongoingPauseMs = timeline.pausedAtMs
@@ -109,13 +109,14 @@ export const deriveTimerState = (
   elapsedSeconds: number,
   blindLevels: BlindLevel[],
 ): DerivedTimerState => {
+  const safeElapsedSeconds = Math.max(elapsedSeconds, 0);
   const totalLevels = blindLevels.length;
 
   if (totalLevels === 0) {
     return {
       currentLevel: 0,
       timeRemaining: 0,
-      elapsedTotalSeconds: Math.max(elapsedSeconds, 0),
+      elapsedTotalSeconds: safeElapsedSeconds,
     };
   }
 
@@ -123,11 +124,11 @@ export const deriveTimerState = (
     getCumulativeDurationsInSeconds(blindLevels);
   const totalDuration = cumulative[cumulative.length - 1];
 
-  if (elapsedSeconds >= totalDuration) {
+  if (safeElapsedSeconds >= totalDuration) {
     return {
       currentLevel: totalLevels - 1,
       timeRemaining: 0,
-      elapsedTotalSeconds: elapsedSeconds,
+      elapsedTotalSeconds: safeElapsedSeconds,
     };
   }
 
@@ -135,19 +136,19 @@ export const deriveTimerState = (
   for (let i = 0; i < totalLevels; i += 1) {
     const startsAt = cumulative[i];
     const endsAt = startsAt + durations[i];
-    if (elapsedSeconds >= startsAt && elapsedSeconds < endsAt) {
+    if (safeElapsedSeconds >= startsAt && safeElapsedSeconds < endsAt) {
       levelIndex = i;
       break;
     }
   }
 
   const levelEnd = cumulative[levelIndex] + durations[levelIndex];
-  const timeRemaining = Math.max(levelEnd - elapsedSeconds, 0);
+  const timeRemaining = Math.max(levelEnd - safeElapsedSeconds, 0);
 
   return {
     currentLevel: levelIndex,
     timeRemaining,
-    elapsedTotalSeconds: elapsedSeconds,
+    elapsedTotalSeconds: safeElapsedSeconds,
   };
 };
 
