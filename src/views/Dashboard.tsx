@@ -1,4 +1,4 @@
-import { getTime, format } from "date-fns";
+import { format } from "date-fns";
 import { formatInTimeZone } from "date-fns-tz";
 import { useTournamentStore } from "@/stores/tournament.store";
 import { CartoonCard } from "@/components/CartoonCard";
@@ -22,7 +22,7 @@ export const DashboardView = () => {
     timeRemaining,
     announcement,
     payoutStructure,
-    tournamentStartTimeInMs,
+    elapsedTotalSeconds,
     setAnnouncement,
     getPrizePool,
   } = useTournamentStore();
@@ -216,10 +216,8 @@ export const DashboardView = () => {
               Total time
             </p>
             <p className="text-lg font-display text-foreground">
-              {tournamentStartTimeInMs
-                ? formatTimeLong(
-                    new Date(getTime(new Date()) - tournamentStartTimeInMs),
-                  )
+              {elapsedTotalSeconds > 0
+                ? formatTimeLong(new Date(elapsedTotalSeconds * 1000))
                 : "Not started"}
             </p>
           </div>

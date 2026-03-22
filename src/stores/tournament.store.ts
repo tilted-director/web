@@ -3,6 +3,11 @@ import { persist } from "zustand/middleware";
 import { getTime } from "date-fns";
 import { generateId } from "@/lib/utils";
 import type { Player, BlindLevel } from "@/domain/types/tournament.types";
+import {
+  deriveTimerState,
+  getEffectiveElapsedMs,
+  getElapsedOffsetForTargetLevel,
+} from "@/domain/timer/engine";
 import CLASSIC from "@/domain/structures/classic.json";
 
 type TournamentStore = {
@@ -11,20 +16,25 @@ type TournamentStore = {
   buyIn: number;
   currentLevel: number;
   timeRemaining: number;
+  elapsedTotalSeconds: number;
   isRunning: boolean;
   tournamentName: string;
   startingChips: number;
   announcement: string;
   addOnChips: number;
   addOn: number;
-  payoutStructure: number[];
-  tournamentStartTimeInMs: number | null;
+  payoutStructure: (number | null)[];
+  tournamentStartsAt: number | null;
+  tournamentPausedAt: number | null;
+  totalPausedMs: number;
+  elapsedOffsetMs: number;
 
   // setters
   setTournamentName: (name: string) => void;
+  setBuyIn: (amount: number) => void;
   setStartingChips: (chips: number) => void;
   setAnnouncement: (msg: string) => void;
-  setPayoutStructure: (structure: number[]) => void;
+  setPayoutStructure: (structure: (number | null)[]) => void;
 
   // actions
   addPlayer: (name: string) => void;
@@ -34,11 +44,13 @@ type TournamentStore = {
   rebuy: (id: string) => void;
   buyAddon: (id: string) => void;
   removePlayer: (id: string) => void;
+  randomizeSeats: () => void;
 
   toggleTimer: () => void;
   resetTimer: () => void;
   nextLevel: () => void;
   prevLevel: () => void;
+  syncTimerState: () => void;
 
   startTimerLoop: () => void;
   stopTimerLoop: () => void;
@@ -57,9 +69,10 @@ export const useTournamentStore = create<
     (set, get) => ({
       players: [],
       blindLevels: CLASSIC,
-      buyIn: 50,
+      buyIn: 20,
       currentLevel: 0,
       timeRemaining: CLASSIC[0].duration * 60,
+      elapsedTotalSeconds: 0,
       isRunning: false,
       tournamentName: "The tilted tournament",
       startingChips: 10000,
@@ -67,9 +80,18 @@ export const useTournamentStore = create<
       addOnChips: 5000,
       addOn: 10,
       payoutStructure: [50, 30, 20],
-      tournamentStartTimeInMs: null,
+      tournamentStartsAt: null,
+      tournamentPausedAt: null,
+      totalPausedMs: 0,
+      elapsedOffsetMs: 0,
+
       setTournamentName: (name) => set({ tournamentName: name }),
-      setStartingChips: (chips) => set({ startingChips: chips }),
+      setBuyIn: (amount) => set({ buyIn: amount }),
+      setStartingChips: (chips) =>
+        set((state) => ({
+          startingChips: chips,
+          players: state.players.map((p) => ({ ...p, chips: chips })),
+        })),
       setAnnouncement: (msg) => set({ announcement: msg }),
       setPayoutStructure: (structure) => set({ payoutStructure: structure }),
 
@@ -138,43 +160,143 @@ export const useTournamentStore = create<
           players: s.players.filter((p) => p.id !== id),
         })),
 
-      toggleTimer: () => {
-        const running = get().isRunning;
-        const tournamentStartTimeInMs = get().tournamentStartTimeInMs;
+      randomizeSeats: () =>
+        set((s) => {
+          const shuffled = [...s.players].sort(() => Math.random() - 0.5);
+          return {
+            players: shuffled.map((p, index) => ({ ...p, seat: index + 1 })),
+          };
+        }),
 
-        if (!running && tournamentStartTimeInMs === null) {
-          set({ tournamentStartTimeInMs: getTime(new Date()) });
+      toggleTimer: () => {
+        const now = getTime(new Date());
+        const {
+          isRunning,
+          tournamentStartsAt,
+          tournamentPausedAt,
+          totalPausedMs,
+        } = get();
+
+        if (!isRunning) {
+          if (tournamentStartsAt === null) {
+            set({
+              tournamentStartsAt: now,
+              tournamentPausedAt: null,
+              isRunning: true,
+            });
+          } else if (tournamentPausedAt !== null) {
+            set({
+              tournamentPausedAt: null,
+              totalPausedMs:
+                totalPausedMs + Math.max(now - tournamentPausedAt, 0),
+              isRunning: true,
+            });
+          } else {
+            set({ isRunning: true });
+          }
+
+          get().syncTimerState();
+          get().startTimerLoop();
+          return;
         }
 
-        set({ isRunning: !running });
-        if (!running) get().startTimerLoop();
-        else get().stopTimerLoop();
-      },
-
-      resetTimer: () => {
-        const { blindLevels, currentLevel } = get();
-        set({
-          timeRemaining: blindLevels[currentLevel].duration * 60,
-          isRunning: false,
-        });
+        set({ isRunning: false, tournamentPausedAt: now });
+        get().syncTimerState();
         get().stopTimerLoop();
       },
 
-      nextLevel: () => {
-        const { currentLevel, blindLevels } = get();
-        const next = Math.min(currentLevel + 1, blindLevels.length - 1);
+      resetTimer: () => {
+        const { blindLevels } = get();
         set({
-          currentLevel: next,
-          timeRemaining: blindLevels[next].duration * 60,
+          currentLevel: 0,
+          timeRemaining: blindLevels[0].duration * 60,
+          elapsedTotalSeconds: 0,
+          isRunning: false,
+          tournamentStartsAt: null,
+          tournamentPausedAt: null,
+          totalPausedMs: 0,
+          elapsedOffsetMs: 0,
         });
+        get().stopTimerLoop();
+      },
+      nextLevel: () => {
+        const now = getTime(new Date());
+        const {
+          blindLevels,
+          tournamentStartsAt,
+          tournamentPausedAt,
+          totalPausedMs,
+          elapsedOffsetMs,
+          currentLevel,
+        } = get();
+        const targetLevel = currentLevel + 1;
+
+        set({
+          elapsedOffsetMs: getElapsedOffsetForTargetLevel(
+            now,
+            targetLevel,
+            blindLevels,
+            {
+              startedAtMs: tournamentStartsAt,
+              pausedAtMs: tournamentPausedAt,
+              totalPausedMs,
+              elapsedOffsetMs,
+            },
+          ),
+        });
+        get().syncTimerState();
+      },
+      prevLevel: () => {
+        const now = getTime(new Date());
+        const {
+          blindLevels,
+          tournamentStartsAt,
+          tournamentPausedAt,
+          totalPausedMs,
+          elapsedOffsetMs,
+          currentLevel,
+        } = get();
+        const targetLevel = currentLevel - 1;
+
+        set({
+          elapsedOffsetMs: getElapsedOffsetForTargetLevel(
+            now,
+            targetLevel,
+            blindLevels,
+            {
+              startedAtMs: tournamentStartsAt,
+              pausedAtMs: tournamentPausedAt,
+              totalPausedMs,
+              elapsedOffsetMs,
+            },
+          ),
+        });
+        get().syncTimerState();
       },
 
-      prevLevel: () => {
-        const { currentLevel, blindLevels } = get();
-        const prev = Math.max(currentLevel - 1, 0);
+      syncTimerState: () => {
+        const now = getTime(new Date());
+        const {
+          blindLevels,
+          tournamentStartsAt,
+          tournamentPausedAt,
+          totalPausedMs,
+          elapsedOffsetMs,
+        } = get();
+
+        const effectiveElapsedMs = getEffectiveElapsedMs(now, {
+          startedAtMs: tournamentStartsAt,
+          pausedAtMs: tournamentPausedAt,
+          totalPausedMs,
+          elapsedOffsetMs,
+        });
+        const elapsedSeconds = Math.floor(effectiveElapsedMs / 1000);
+        const derived = deriveTimerState(elapsedSeconds, blindLevels);
+
         set({
-          currentLevel: prev,
-          timeRemaining: blindLevels[prev].duration * 60,
+          currentLevel: derived.currentLevel,
+          timeRemaining: derived.timeRemaining,
+          elapsedTotalSeconds: derived.elapsedTotalSeconds,
         });
       },
 
@@ -182,17 +304,7 @@ export const useTournamentStore = create<
         if (interval) return;
 
         interval = setInterval(() => {
-          const { timeRemaining, currentLevel, blindLevels } = get();
-
-          if (timeRemaining <= 1) {
-            const next = Math.min(currentLevel + 1, blindLevels.length - 1);
-            set({
-              currentLevel: next,
-              timeRemaining: blindLevels[next].duration * 60,
-            });
-          } else {
-            set({ timeRemaining: timeRemaining - 1 });
-          }
+          get().syncTimerState();
         }, 1000);
       },
 
@@ -220,15 +332,40 @@ export const useTournamentStore = create<
         players: state.players,
         tournamentName: state.tournamentName,
         currentLevel: state.currentLevel,
-        timeRemaining: state.timeRemaining,
         isRunning: state.isRunning,
         startingChips: state.startingChips,
         announcement: state.announcement,
         buyIn: state.buyIn,
         addOnChips: state.addOnChips,
         addOn: state.addOn,
-        tournamentStartTimeInMs: state.tournamentStartTimeInMs,
+        tournamentStartsAt: state.tournamentStartsAt,
+        tournamentPausedAt: state.tournamentPausedAt,
+        totalPausedMs: state.totalPausedMs,
+        elapsedOffsetMs: state.elapsedOffsetMs,
       }),
+      onRehydrateStorage: () => (state) => {
+        if (!state) return;
+
+        state.syncTimerState();
+        if (state.isRunning) {
+          state.startTimerLoop();
+        } else {
+          state.stopTimerLoop();
+        }
+      },
     },
   ),
 );
+
+if (typeof window !== "undefined") {
+  window.addEventListener("storage", (event) => {
+    if (event.key !== "tournament-storage") return;
+
+    useTournamentStore.persist.rehydrate();
+    const state = useTournamentStore.getState();
+    state.syncTimerState();
+
+    if (state.isRunning) state.startTimerLoop();
+    else state.stopTimerLoop();
+  });
+}

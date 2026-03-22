@@ -1,30 +1,22 @@
 # Tilted Director 🃏
 
-Un tableau de bord ludique pour diriger facilement un tournoi simple de poker : gestion des joueurs, suivi des blindes en temps réel, et statistiques clés à portée de main.
+A playful dashboard to run a simple poker tournament with ease: player management, real-time blind tracking, and key stats at a glance.
 
-## 🚀 Démarrage rapide
+## ✨ Features
 
-```bash
-pnpm install  # installer les dépendances
-pnpm dev      # lancer en mode développement
-# Ouvrir http://localhost:5173
-```
-
-## ✨ Fonctionnalités
-
-- **Dashboard** : aperçu du tournoi (joueurs actifs, niveau actuel, temps restant, pool de prizes)
-- **Timer** : minuteur de blindes interactif avec contrôles play/pause/précédent/suivant
-- **Gestion des joueurs** : ajout, élimination, rebuys, add-ons, affichage par sièges
-- **Configurations** : réglages du tournoi (nom, tapis de départ, annonces)
-- **Interface cartoon** : design ludique et déjanté pour une ambiance fun
+- **Real-time tournament control**: instantly view the tournament status to make the right decisions at the right time
+- **Pace management**: progress through blind levels smoothly to keep the event running on schedule
+- **Operational player management**: track entries, eliminations, rebuys, and add-ons without losing information
+- **Consistent tournament rules**: configure a clear structure (name, starting stack, blind levels) applied to all players
+- **Organizer visibility**: centralize critical information to support floor decisions and table communication
 
 ## 🛠 Tech Stack
 
 - React 19 + Vite + TypeScript
 - Tailwind CSS v4
-- Zustand pour la gestion d'état
-- lucide-react pour les icônes
+- Zustand for state management
+- lucide-react for icons
 
-## 🌐 Déploiement
+## 🌐 Deployment
 
-Accessible en ligne : **https://tilted-director.github.io/web/**
+Available online: **https://tilted-director.github.io/web/**
